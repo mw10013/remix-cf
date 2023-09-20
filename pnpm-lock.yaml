@@ -44,7 +44,7 @@ devDependencies:
     specifier: ^18.2.7
     version: 18.2.7
   eslint:
-    specifier: ^8.38.0
+    specifier: ^8.49.0
     version: 8.49.0
   prettier:
     specifier: 3.0.3
