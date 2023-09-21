@@ -12,6 +12,7 @@
   - SUPABASE_ANON_KEY
   - SUPABASE_SERVICE_ROLE_KEY
   - ENVIRONMENT (production or preview)
+  - OPENAI_API_KEY
 
 ### Reference
 

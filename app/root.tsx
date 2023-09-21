@@ -1,5 +1,10 @@
 import { NextUIProvider } from "@nextui-org/react";
-import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
+import {
+  json,
+  type LinksFunction,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from "@remix-run/cloudflare";
 import {
   isRouteErrorResponse,
   Links,
@@ -8,9 +13,14 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
   useRouteError,
 } from "@remix-run/react";
 import styles from "./tailwind.css";
+import {
+  assertCloudflareEnv,
+  CloudflareBrowserEnv,
+} from "./types/cloudflareEnv";
 
 export const meta: MetaFunction = () => {
   // https://remix.run/docs/en/main/route/meta-v2#avoid-meta-in-parent-routes
@@ -25,10 +35,22 @@ export const meta: MetaFunction = () => {
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
+export function loader({ context }: LoaderFunctionArgs) {
+  assertCloudflareEnv(context.env);
+  const { ENVIRONMENT } = context.env;
+  const cloudflareBrowserEnv: CloudflareBrowserEnv = {
+    ENVIRONMENT,
+  };
+  return json({ cloudflareBrowserEnv });
+}
+
 export default function App() {
+  const { cloudflareBrowserEnv } = useLoaderData<typeof loader>();
+
   return (
     <html lang="en">
       <head>
+        {/* https://remix.run/docs/en/main/route/meta#global-meta */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
@@ -38,6 +60,14 @@ export default function App() {
         <NextUIProvider>
           <Outlet />
           <ScrollRestoration />
+          {/* Set up environment before scripts so that scripts can use. */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.namewave = ${JSON.stringify(
+                cloudflareBrowserEnv,
+              )}`,
+            }}
+          />
           <Scripts />
           <LiveReload />
         </NextUIProvider>
