@@ -38,3 +38,14 @@ export default async function handleRequest(
     status: responseStatusCode,
   });
 }
+
+/**
+ * @see https://otiv.dev/blog/essential-remix-error-handling
+ */
+// export function handleError(
+//   error: unknown,
+//   { request, params, context }: DataFunctionArgs
+// ): void {
+//   // Track the error somehow
+//   console.log(error);
+// }
