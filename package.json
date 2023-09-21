@@ -9,7 +9,10 @@
     "start": "wrangler pages dev --compatibility-date=2023-06-21 ./public",
     "format": "pnpm prettier --write .",
     "lint": "pnpm eslint .",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "tail:prod": "wrangler pages deployment tail --project-name remix-cf --environment production",
+    "tail:preview": "wrangler pages deployment tail --project-name remix-cf --environment preview",
+    "tail:deploy": "wrangler pages deployment tail --project-name remix-cf"
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
