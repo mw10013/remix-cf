@@ -1,5 +1,5 @@
 import { NextUIProvider } from "@nextui-org/react";
-import type { LinksFunction } from "@remix-run/cloudflare";
+import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
 import {
   isRouteErrorResponse,
   Links,
@@ -11,6 +11,17 @@ import {
   useRouteError,
 } from "@remix-run/react";
 import styles from "./tailwind.css";
+
+export const meta: MetaFunction = () => {
+  // https://remix.run/docs/en/main/route/meta-v2#avoid-meta-in-parent-routes
+  return [
+    { title: "Remix-Cf" },
+    {
+      name: "description",
+      content: "This app runs on Cloudflare.",
+    },
+  ];
+};
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
