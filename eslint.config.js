@@ -1,12 +1,12 @@
-import typescriptPlugin from "@typescript-eslint/eslint-plugin";
-import typescriptParser from "@typescript-eslint/parser";
-import reactPlugin from "eslint-plugin-react";
-import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
-import globals from "globals";
-import js from "@eslint/js";
 import path from "path";
 import { fileURLToPath } from "url";
+import js from "@eslint/js";
+import typescriptPlugin from "@typescript-eslint/eslint-plugin";
+import typescriptParser from "@typescript-eslint/parser";
+import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+import globals from "globals";
 
 // https://stackoverflow.com/questions/72456535/referenceerror-dirname-is-not-defined-in-es-module-scope
 const __filename = fileURLToPath(import.meta.url);
@@ -15,12 +15,7 @@ const __dirname = path.dirname(__filename);
 export default [
   {
     // https://eslint.org/docs/latest/use/configure/configuration-files-new#globally-ignoring-files-with-ignores
-    ignores: [
-      ".cache/",
-      ".wrangler/",
-      "public/build/",
-      "functions/",
-    ],
+    ignores: [".cache/", ".wrangler/", "public/build/", "functions/"],
   },
   js.configs.recommended,
   {
