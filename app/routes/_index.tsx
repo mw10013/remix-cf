@@ -1,3 +1,4 @@
+import { Card, CardBody } from "@nextui-org/react";
 import type { MetaFunction } from "@remix-run/cloudflare";
 
 export const meta: MetaFunction = () => {
@@ -9,33 +10,10 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   return (
-    <div className="p-8">
-      <h1 className="text-lg font-semibold">Welcome to Remix</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
+    <Card className="mx-auto mt-8 max-w-sm">
+      <CardBody>
+        <p>Make beautiful websites regardless of your design experience.</p>
+      </CardBody>
+    </Card>
   );
 }
