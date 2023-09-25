@@ -20,6 +20,7 @@
     "@remix-run/cloudflare-pages": "^2.0.1",
     "@remix-run/css-bundle": "^2.0.1",
     "@remix-run/react": "^2.0.1",
+    "@uidotdev/usehooks": "^2.3.1",
     "ai": "^2.2.13",
     "framer-motion": "^10.16.4",
     "isbot": "^3.6.8",

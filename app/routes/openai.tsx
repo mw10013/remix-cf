@@ -6,7 +6,7 @@ export default function Route() {
   });
 
   return (
-    <main className="mx-auto flex h-screen w-full max-w-lg flex-col p-24">
+    <main className="mx-auto flex h-screen w-full max-w-lg flex-col overflow-auto p-24">
       <section className="m mb-auto">
         {messages.map((m) => (
           <div className="mb-4" key={m.id}>
@@ -15,7 +15,10 @@ export default function Route() {
           </div>
         ))}
       </section>
-      <form className="flex space-x-4" onSubmit={handleSubmit}>
+      <form
+        className="fixed bottom-0 flex space-x-4 p-4"
+        onSubmit={handleSubmit}
+      >
         <input
           className="rounded-md p-2 text-black"
           value={input}
