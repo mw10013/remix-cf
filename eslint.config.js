@@ -28,15 +28,16 @@ export default [
     },
   },
   {
-    files: ["ui/**/*.ts", "ui/**/*.tsx"],
+    files: ["**/*.ts", "**/*.tsx"],
     linterOptions: {
       reportUnusedDisableDirectives: true,
     },
     languageOptions: {
       parser: typescriptParser,
+      // https://typescript-eslint.io/linting/typed-linting
       parserOptions: {
         project: true,
-        tsconfigRootDir: path.join(__dirname, "ui"),
+        tsconfigRootDir: __dirname,
       },
       globals: {
         ...globals.browser,
