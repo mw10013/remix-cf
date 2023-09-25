@@ -56,14 +56,23 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body>
-        <NextUIProvider>
-          <Outlet />
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased light">
+        <NextUIProvider className="">
+          {/* https://github.com/nextui-org/next-app-template/blob/main/app/layout.tsx */}
+          <div className="relative flex h-screen flex-col">
+            <main className="container mx-auto max-w-7xl flex-grow px-6 pt-16">
+              <Outlet />
+            </main>
+            <footer className="flex w-full items-center justify-center py-3">
+              <span className="text-default-600">Powered by&nbsp;</span>
+              <p className="text-primary">Remix and NextUI</p>
+            </footer>
+          </div>
           <ScrollRestoration />
           {/* Set up environment before scripts so that scripts can use. */}
           <script
             dangerouslySetInnerHTML={{
-              __html: `window.namewave = ${JSON.stringify(
+              __html: `window.cloudflareBrowserEnv = ${JSON.stringify(
                 cloudflareBrowserEnv,
               )}`,
             }}
