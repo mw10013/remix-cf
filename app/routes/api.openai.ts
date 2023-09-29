@@ -21,6 +21,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     stream: true,
     messages,
   });
+  // @ts-expect-error: Type 'ChatCompletionChunk' is not assignable to type 'Completion'.ts(2345)
   const stream = OpenAIStream(response);
   return new StreamingTextResponse(stream);
 };

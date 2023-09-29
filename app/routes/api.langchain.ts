@@ -56,7 +56,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
    * import { RunnableSequence } from "langchain/schema/runnable";
    * const chain = RunnableSequence.from([prompt, model, outputParser]);
    */
-  // @ts-expect-error: Index signature for type 'string' is missing in type 'ChatOpenAI<ChatOpenAICallOptions>'.ts(2345)
   const chain = prompt.pipe(model).pipe(outputParser);
 
   const stream = await chain.stream({
