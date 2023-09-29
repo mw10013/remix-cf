@@ -2,7 +2,7 @@ import { useChat } from "ai/react";
 
 export default function Route() {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: "/api/openai",
+    api: "/api/langchain",
   });
 
   return (
