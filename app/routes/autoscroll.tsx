@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { faker } from "@faker-js/faker";
 import { Button, Card, CardBody } from "@nextui-org/react";
 
 export default function Route() {
@@ -28,7 +27,7 @@ export default function Route() {
           color="primary"
           size="sm"
           onPress={() => {
-            setText((t) => t + " " + faker.lorem.sentence({ min: 1, max: 10 }));
+            setText((t) => t + " fee fi fo fum eeney meeney miney moe");
           }}
         >
           Lorem
