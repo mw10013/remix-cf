@@ -1,13 +1,13 @@
-import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 import { faker } from "@faker-js/faker";
 import { Button, Card, CardBody } from "@nextui-org/react";
 
 export default function Route() {
-  const [text, setText] = React.useState("");
+  const [text, setText] = useState("");
 
   // https://dev.to/martinez/real-scroll-for-a-chat-application-22co
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
     if (containerRef.current === null) return;
     const { offsetHeight, scrollHeight, scrollTop } = containerRef.current;
     if (scrollHeight <= scrollTop + offsetHeight + 100) {
