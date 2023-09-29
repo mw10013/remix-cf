@@ -30,7 +30,7 @@ export default function Route() {
             setText((t) => t + " fee fi fo fum eeney meeney miney moe");
           }}
         >
-          Lorem
+          Fee Fi Foo
         </Button>
       </CardBody>
     </Card>
