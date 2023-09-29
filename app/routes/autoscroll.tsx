@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { faker } from "@faker-js/faker";
+// import { faker } from "@faker-js/faker";
 import { Button, Card, CardBody } from "@nextui-org/react";
 
 export default function Route() {
@@ -16,7 +16,8 @@ export default function Route() {
           <Button
             disableRipple
             onPress={() => {
-              setText((t) => t + " " + faker.lorem.sentence());
+              //   setText((t) => t + " " + faker.lorem.sentence());
+              setText((t) => t + " " + "fee fi fo fum");
             }}
           >
             Lorem
