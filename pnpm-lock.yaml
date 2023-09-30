@@ -50,6 +50,9 @@ dependencies:
   zod:
     specifier: ^3.22.2
     version: 3.22.2
+  zod-to-json-schema:
+    specifier: ^3.21.4
+    version: 3.21.4(zod@3.22.2)
 
 devDependencies:
   '@cloudflare/workers-types':
