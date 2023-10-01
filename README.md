@@ -13,6 +13,12 @@
   - SUPABASE_SERVICE_ROLE_KEY
   - ENVIRONMENT (production or preview)
   - OPENAI_API_KEY
+- Redox
+  - Developer | Endpoints | Create Endpoint
+    - Name: local
+    - Redox API Endpoint: [cloudflare tunnel to localhost from tunnel script in package.json]
+    - Verification Token: [REDOX_VERIFICATION_TOKEN env var]
+    - Verification Method: POST
 
 ### Reference
 
