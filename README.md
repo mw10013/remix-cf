@@ -6,14 +6,20 @@
 - Deployed to [Cloudflare Pages](https://developers.cloudflare.com/pages/).
 - Use [Deploy a Remix Site Guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-remix-site/#deploying-with-cloudflare-pages).
 - Environment Variable (for Production and Preview)
-  - NODE_VERSION to 18.17.1
+  - NODE_VERSION: 18.17.1
   - Reference: https://supabase.com/dashboard/project/gesbzrinbwxyfkybncku/settings/api
   - SUPABASE_URL
   - SUPABASE_ANON_KEY
   - SUPABASE_SERVICE_ROLE_KEY
   - ENVIRONMENT (production or preview)
   - OPENAI_API_KEY
+  - REDOX_VERIFICATION_TOKEN
+  - REDOX_PRIVATE_JWK: redox api private key as JWK
 - Redox
+  - Developer | API Keys | Create API Key
+    - Name: mw
+    - Key pairs | Generate your keys | Generate New API Keys
+    - Download json private key (JWK)
   - Developer | Endpoints | Create Endpoint
     - Name: local
     - Redox API Endpoint: [cloudflare tunnel to localhost from tunnel script in package.json]
