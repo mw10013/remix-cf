@@ -16,54 +16,58 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 const clientId = "d250b218-c786-44d7-8c72-62937f6b132c";
 // const iat = Math.floor(new Date().getTime()/1000);  // Current timestamp in seconds (undefined is valid)
 const aud = "https://api.redoxengine.com/v2/auth/token";
-// const kid = '<INSERT KID HERE>';
-const scope = "fhir:development"; // valid scopes are 'fhir:development', 'fhir:staging', or 'fhir:production'
+const kid = "mw";
+// const scope = "fhir:development"; // valid scopes are 'fhir:development', 'fhir:staging', or 'fhir:production'
 
-async function getSignedAssertion(
-  clientId,
-  privateKeyPEM,
-  kid,
-  aud,
-  iat,
-  scope,
-) {
-  const privateKey = await jose.importPKCS8(privateKeyPEM, "RS384");
+// async function getSignedAssertion(clientId, privateKeyPEM, kid, aud, iat, scope) {
+//     const privateKey = await jose.importPKCS8(privateKeyPEM, 'RS384');
+
+//     const payload = {
+//         scope,
+//     };
+
+//     const signedAssertion = await new jose.SignJWT(payload)
+//     .setProtectedHeader({
+//         alg: 'RS384',
+//         kid: kid
+//     })
+//     .setAudience(aud)
+//     .setIssuer(clientId)
+//     .setSubject(clientId)
+//     .setIssuedAt(iat)
+//     .setJti(randomBytes(8).toString('hex')) // a random string to prevent replay attacks
+//     .sign(privateKey);
+
+//     return signedAssertion;
+// }
+
+export async function action({ context }: ActionFunctionArgs) {
+  assertCloudflareEnv(context.env);
+  console.log("redox: action:", context.env.REDOX_PRIVATE_JWK);
+
+  const privateKeyJwk = JSON.parse(context.env.REDOX_PRIVATE_JWK) as jose.JWK;
+  const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
+  console.log("redox: action: privateKey:", privateKey);
 
   const payload = {
-    scope,
+    scope: "fhir:development",
   };
 
+  const iat = Math.floor(new Date().getTime() / 1000); // Current timestamp in seconds (undefined is valid)
+  const randomBytes = new Uint8Array(8);
+  crypto.getRandomValues(randomBytes);
   const signedAssertion = await new jose.SignJWT(payload)
     .setProtectedHeader({
       alg: "RS384",
-      kid: kid,
+      kid,
     })
     .setAudience(aud)
     .setIssuer(clientId)
     .setSubject(clientId)
     .setIssuedAt(iat)
-    .setJti(randomBytes(8).toString("hex")) // a random string to prevent replay attacks
+    .setJti(randomBytes.reduce((acc, curr) => acc + curr.toString(16), "")) // a random string to prevent replay attacks
     .sign(privateKey);
-
-  return signedAssertion;
-}
-
-export function action({ context }: ActionFunctionArgs) {
-  assertCloudflareEnv(context.env);
-  //   console.log("redox: action:", context.env.REDOX_PRIVATE_JWK);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const privateKeyJwk = JSON.parse(context.env.REDOX_PRIVATE_JWK);
-  console.log("redox: action: privateKeyJwk", privateKeyJwk);
-
-  //   const signedAssertion = await getSignedAssertion(
-  //     clientId,
-  //     privateKeyPEM,
-  //     kid,
-  //     aud,
-  //     iat,
-  //     scope,
-  //   );
-  //   console.log("go: signedAssertion:", signedAssertion);
+  console.log("redox: action: signedAssertion:", signedAssertion);
   return null;
 }
 

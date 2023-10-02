@@ -15,6 +15,7 @@
   - OPENAI_API_KEY
   - REDOX_VERIFICATION_TOKEN
   - REDOX_PRIVATE_JWK: redox api private key as JWK
+    - Can use https://jqplay.org/ with -s to convert to 1 line of json.
 - Redox
   - Developer | API Keys | Create API Key
     - Name: mw
