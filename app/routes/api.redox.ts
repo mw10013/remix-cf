@@ -6,7 +6,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const { "verification-token": verificationToken, challenge } =
     await request.json<{ "verification-token": string; challenge: string }>();
   console.error("api.redox:", { verificationToken, challenge });
-  if (verificationToken !== context.env.REDOX_VERIFICATION_TOKEN) {
+  if (verificationToken !== context.env.REDOX_ENDPOINT_VERIFICATION_TOKEN) {
     return json({ message: "Invalid verification token" }, { status: 401 });
   }
   console.log("api.redox: verification token matched!");

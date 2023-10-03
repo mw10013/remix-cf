@@ -5,5 +5,11 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZ
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
 ENVIRONMENT=development
 OPENAI_API_KEY=
-REDOX_VERIFICATION_TOKEN=
-REDOX_PRIVATE_JWK=
+REDOX_API_CLIENT_ID=
+# Valid scopes are 'fhir:development', 'fhir:staging', or 'fhir:production'
+REDOX_API_SCOPE=fhir:development
+# kid from redox api public key json (JWK).
+REDOX_API_PUBLIC_KID=
+# redox api private key as JWK
+REDOX_API_PRIVATE_JWK=
+REDOX_ENDPOINT_VERIFICATION_TOKEN=

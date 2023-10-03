@@ -13,18 +13,21 @@
   - SUPABASE_SERVICE_ROLE_KEY
   - ENVIRONMENT (production or preview)
   - OPENAI_API_KEY
-  - REDOX_VERIFICATION_TOKEN
-  - REDOX_PRIVATE_JWK: redox api private key as JWK
+  - REDOX_API_CLIENT_ID
+  - REDOX_API_SCOPE
+  - REDOX_API_PUBLIC_KID: kid from redox api public key json (JWK).
+  - REDOX_API_PRIVATE_JWK: redox api private key as JWK
     - Can use https://jqplay.org/ with -s to convert to 1 line of json.
+  - REDOX_ENDPOINT_VERIFICATION_TOKEN
 - Redox
   - Developer | API Keys | Create API Key
     - Name: mw
     - Key pairs | Generate your keys | Generate New API Keys
-    - Download json private key (JWK)
+    - Download json public and private keys (JWK)
   - Developer | Endpoints | Create Endpoint
     - Name: local
     - Redox API Endpoint: [cloudflare tunnel to localhost from tunnel script in package.json]
-    - Verification Token: [REDOX_VERIFICATION_TOKEN env var]
+    - Verification Token: [REDOX_ENDPOINT_VERIFICATION_TOKEN env var]
     - Verification Method: POST
 
 ### Reference
