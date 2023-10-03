@@ -6,6 +6,15 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 const AUD = "https://api.redoxengine.com/v2/auth/token";
 
+async function assertResponseOk(res: Response) {
+  if (!res.ok) {
+    const error = new Error(
+      `${res.status} ${res.statusText} ${await res.text()}`,
+    );
+    throw error;
+  }
+}
+
 async function requestJwtAccessToken(signedAssertion: string, scope: string) {
   const requestBody = new URLSearchParams();
   requestBody.append("grant_type", "client_credentials");
@@ -23,11 +32,7 @@ async function requestJwtAccessToken(signedAssertion: string, scope: string) {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   });
-
-  if (!response.ok) {
-    throw new Error("Request failed with status: " + response.status);
-  }
-
+  await assertResponseOk(response);
   return await response.json<string>();
 }
 
