@@ -86,9 +86,6 @@ export async function action({ context }: ActionFunctionArgs) {
     "redox: action: accessToken:",
     JSON.stringify(accessToken, null, 2),
   );
-  //     const accessTokenNoLibrary = await requestJwtAccessTokenNoLibrary(signedAssertion, scope);
-  //     console.log({accessTokenNoLibrary});
-
   return json({ signedAssertion, accessToken });
 }
 
@@ -108,56 +105,3 @@ export default function Route() {
     </Card>
   );
 }
-
-// async function requestJwtAccessTokenNoLibrary(signedAssertion, scope) {
-
-//     const requestBody = qsStringify({
-//         grant_type: 'client_credentials',
-//         client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-//         client_assertion: signedAssertion,
-//         scope
-//       });
-
-//     const options = {
-//         method: 'POST',
-//         headers: {
-//             'content-type': 'application/x-www-form-urlencoded'
-//         }
-//     };
-
-//     return new Promise(function(resolve, reject) {
-//         try {
-//             const req = https.request('https://api.redoxengine.com/v2/auth/token', options, (res) => {
-//                 console.log('statusCode:', res.statusCode);
-//                 console.log('headers:', res.headers);
-//                 let data = '';
-
-//                 res.on('data', (d) => {
-//                     data += d;
-//                 });
-//                 res.on('end', (d) =>{
-//                     const parsed = JSON.parse(data);
-//                     resolve(parsed);
-//                 });
-//                 res.on('error', (error) => {
-//                     throw error;
-//                 })
-//             });
-
-//             req.write(requestBody);
-//             req.end();
-//         }
-//         catch(e) {
-//             reject(e);
-//         }
-
-//     });
-// }
-
-// (async() => {
-//     const signedAssertion = await getSignedAssertion(clientId, privateKeyPEM, kid, aud, iat, scope);
-//     const accessTokenAxios = await requestJwtAccessTokenAxios(signedAssertion, scope);
-//     const accessTokenNoLibrary = await requestJwtAccessTokenNoLibrary(signedAssertion, scope);
-//     console.log({accessTokenAxios});
-//     console.log({accessTokenNoLibrary});
-// })();
