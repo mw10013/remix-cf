@@ -33,7 +33,12 @@ async function requestJwtAccessToken(signedAssertion: string, scope: string) {
     },
   });
   await assertResponseOk(response);
-  return await response.json<string>();
+  return await response.json<{
+    access_token: string;
+    scope: string;
+    token_type: string;
+    expires_in: number;
+  }>();
 }
 
 async function getSignedAssertion({
@@ -83,21 +88,40 @@ export async function action({ context }: ActionFunctionArgs) {
     kid: context.env.REDOX_API_PUBLIC_KID,
     aud: AUD,
   });
-  const accessToken = await requestJwtAccessToken(
+  const jwtAccessToken = await requestJwtAccessToken(
     signedAssertion,
     context.env.REDOX_API_SCOPE,
   );
-  console.log(
-    "redox: action: accessToken:",
-    JSON.stringify(accessToken, null, 2),
+  console.log("redox: action: jwtAccessToken:", jwtAccessToken);
+
+  const response = await fetch(
+    "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/Patient/_search",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwtAccessToken.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        given: "Keva",
+        family: "Green",
+        birthdate: "1995-08-26",
+      }),
+    },
   );
-  return json({ signedAssertion, accessToken });
+  await assertResponseOk(response);
+
+  return json({
+    signedAssertion,
+    jwtAccessToken,
+    result: await response.json(),
+  });
 }
 
 export default function Route() {
   const actionData = useActionData<typeof action>();
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="mx-auto max-w-lg">
       <CardHeader>Redox</CardHeader>
       <CardBody>
         <Form method="POST">
