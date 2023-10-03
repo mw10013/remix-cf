@@ -4,13 +4,7 @@ import { Form, useActionData } from "@remix-run/react";
 import * as jose from "jose";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
-const clientId = "d250b218-c786-44d7-8c72-62937f6b132c";
-const aud = "https://api.redoxengine.com/v2/auth/token";
-/**
- * Get kid from redox api public key json (JWK).
- */
-const kid = "_72Bw5C86A1AqWbpsQbxkZO6pYhYh5LRvHg-3sPveeY";
-const scope = "fhir:development"; // valid scopes are 'fhir:development', 'fhir:staging', or 'fhir:production'
+const AUD = "https://api.redoxengine.com/v2/auth/token";
 
 async function requestJwtAccessToken(signedAssertion: string, scope: string) {
   const requestBody = new URLSearchParams();
@@ -37,15 +31,24 @@ async function requestJwtAccessToken(signedAssertion: string, scope: string) {
   return await response.json<string>();
 }
 
-async function getSignedAssertion(privateKeyJwk: jose.JWK) {
+async function getSignedAssertion({
+  privateKeyJwk,
+  clientId,
+  scope,
+  kid,
+  aud,
+}: {
+  privateKeyJwk: jose.JWK;
+  clientId: string;
+  scope: string;
+  kid: string;
+  aud: string;
+}) {
   const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
-  //   console.log("redox: action: privateKey:", privateKey);
-
   const payload = {
-    scope: "fhir:development",
+    scope,
   };
 
-  const iat = Math.floor(new Date().getTime() / 1000); // Current timestamp in seconds (undefined is valid)
   const randomBytes = new Uint8Array(8);
   crypto.getRandomValues(randomBytes);
   const signedAssertion = await new jose.SignJWT(payload)
@@ -56,10 +59,9 @@ async function getSignedAssertion(privateKeyJwk: jose.JWK) {
     .setAudience(aud)
     .setIssuer(clientId)
     .setSubject(clientId)
-    .setIssuedAt(iat)
+    .setIssuedAt(Math.floor(new Date().getTime() / 1000)) // Current timestamp in seconds (undefined is valid)
     .setJti(
-      // Array.from() so that map returns string whereas Uint8Array.map returns number.
-      Array.from(randomBytes)
+      Array.from(randomBytes) // Array.from() so that map returns string whereas Uint8Array.map returns number.
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join(""),
     ) // a random string to prevent replay attacks
@@ -69,14 +71,21 @@ async function getSignedAssertion(privateKeyJwk: jose.JWK) {
 
 export async function action({ context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
-  //   console.log("redox: action:", context.env.REDOX_API_PRIVATE_JWK);
-  const privateKeyJwk = JSON.parse(
-    context.env.REDOX_API_PRIVATE_JWK,
-  ) as jose.JWK;
-  const signedAssertion = await getSignedAssertion(privateKeyJwk);
-  console.log("redox: action: signedAssertion:", signedAssertion);
-  const accessToken = await requestJwtAccessToken(signedAssertion, scope);
-  console.log({ accessToken });
+  const signedAssertion = await getSignedAssertion({
+    privateKeyJwk: JSON.parse(context.env.REDOX_API_PRIVATE_JWK) as jose.JWK,
+    clientId: context.env.REDOX_API_CLIENT_ID,
+    scope: context.env.REDOX_API_SCOPE,
+    kid: context.env.REDOX_API_PUBLIC_KID,
+    aud: AUD,
+  });
+  const accessToken = await requestJwtAccessToken(
+    signedAssertion,
+    context.env.REDOX_API_SCOPE,
+  );
+  console.log(
+    "redox: action: accessToken:",
+    JSON.stringify(accessToken, null, 2),
+  );
   //     const accessTokenNoLibrary = await requestJwtAccessTokenNoLibrary(signedAssertion, scope);
   //     console.log({accessTokenNoLibrary});
 
