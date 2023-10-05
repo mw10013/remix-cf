@@ -42,8 +42,6 @@ export async function action({ context }: ActionFunctionArgs) {
     temperature: 0,
   });
 
-  // Binding "function_call" below makes the model always call the specified function.
-  // If you want to allow the model to call functions selectively, omit it.
   const functionCallingModel = llm.bind({
     functions: [
       {
@@ -52,19 +50,14 @@ export async function action({ context }: ActionFunctionArgs) {
         parameters: zodToJsonSchema(zodSchema),
       },
     ],
-    function_call: { name: "output_formatter" },
+    function_call: { name: "output_formatter" }, // always call
   });
-
   const outputParser = new JsonOutputFunctionsParser();
-
   const chain = prompt.pipe(functionCallingModel).pipe(outputParser);
-
   const response = await chain.invoke({
     inputText: "I like apples, bananas, oxygen, and french fries.",
   });
-
-  console.log(JSON.stringify(response, null, 2));
-
+  console.log("fn: action: response:", JSON.stringify(response, null, 2));
   return { data: response };
 }
 
