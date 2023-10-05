@@ -1,12 +1,16 @@
 import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
+import { createTaggingChain } from "langchain/chains";
 import {
   createExtractionChainFromZod,
   createStructuredOutputChainFromZod,
 } from "langchain/chains/openai_functions";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import { JsonOutputFunctionsParser } from "langchain/output_parsers";
+import {
+  JsonOutputFunctionsParser,
+  type FunctionParameters,
+} from "langchain/output_parsers";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -131,6 +135,27 @@ async function extraction(openAIApiKey: string) {
       Alex's dog Frosty is a labrador and likes to play hide and seek.`);
 }
 
+async function tagging(openAIApiKey: string) {
+  const schema: FunctionParameters = {
+    type: "object",
+    properties: {
+      sentiment: { type: "string" },
+      tone: { type: "string" },
+      language: { type: "string" },
+    },
+    required: ["tone"],
+  };
+  const chatModel = new ChatOpenAI({
+    modelName: "gpt-4-0613",
+    openAIApiKey,
+    temperature: 0,
+  });
+  const chain = createTaggingChain(schema, chatModel);
+  return await chain.run(
+    `Estoy increiblemente contento de haberte conocido! Creo que seremos muy buenos amigos!`,
+  );
+}
+
 export async function action({ context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
   return {
@@ -141,6 +166,7 @@ export async function action({ context }: ActionFunctionArgs) {
       context.env.OPENAI_API_KEY,
     ),
     extraction: await extraction(context.env.OPENAI_API_KEY),
+    tagging: await tagging(context.env.OPENAI_API_KEY),
   };
 }
 
