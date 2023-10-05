@@ -1,7 +1,10 @@
 import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
-import { createStructuredOutputChainFromZod } from "langchain/chains/openai_functions";
+import {
+  createExtractionChainFromZod,
+  createStructuredOutputChainFromZod,
+} from "langchain/chains/openai_functions";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { JsonOutputFunctionsParser } from "langchain/output_parsers";
 import {
@@ -107,6 +110,27 @@ async function generateDatabaseRecord(openAIApiKey: string) {
   return response;
 }
 
+/**
+ * @see https://js.langchain.com/docs/modules/chains/additional/openai_functions/extraction
+ */
+async function extraction(openAIApiKey: string) {
+  const zodSchema = z.object({
+    "person-name": z.string().optional(),
+    "person-age": z.number().optional(),
+    "person-hair_color": z.string().optional(),
+    "dog-name": z.string().optional(),
+    "dog-breed": z.string().optional(),
+  });
+  const chatModel = new ChatOpenAI({
+    modelName: "gpt-3.5-turbo-0613",
+    openAIApiKey,
+    temperature: 0,
+  });
+  const chain = createExtractionChainFromZod(zodSchema, chatModel);
+  return await chain.run(`Alex is 5 feet tall. Claudia is 4 feet taller Alex and jumps higher than him. Claudia is a brunette and Alex is blonde.
+      Alex's dog Frosty is a labrador and likes to play hide and seek.`);
+}
+
 export async function action({ context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
   return {
@@ -116,6 +140,7 @@ export async function action({ context }: ActionFunctionArgs) {
     generateDatabaseRecord: await generateDatabaseRecord(
       context.env.OPENAI_API_KEY,
     ),
+    extraction: await extraction(context.env.OPENAI_API_KEY),
   };
 }
 
