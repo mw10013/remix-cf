@@ -135,6 +135,9 @@ async function extraction(openAIApiKey: string) {
       Alex's dog Frosty is a labrador and likes to play hide and seek.`);
 }
 
+/**
+ * @see https://js.langchain.com/docs/modules/chains/additional/openai_functions/tagging
+ */
 async function tagging(openAIApiKey: string) {
   const schema: FunctionParameters = {
     type: "object",
