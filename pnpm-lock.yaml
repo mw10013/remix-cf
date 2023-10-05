@@ -39,8 +39,8 @@ dependencies:
     specifier: ^0.0.156
     version: 0.0.156
   openai:
-    specifier: ^4.11.0
-    version: 4.11.0
+    specifier: ^4.11.1
+    version: 4.11.1
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -143,7 +143,7 @@ packages:
   /@anthropic-ai/sdk@0.6.2:
     resolution: {integrity: sha512-fB9PUj9RFT+XjkL+E9Ol864ZIJi+1P8WnbHspN3N3/GK2uSzjd0cbVIKTGgf4v3N8MwaQu+UWnU7C4BG/fap/g==}
     dependencies:
-      '@types/node': 18.18.1
+      '@types/node': 18.18.3
       '@types/node-fetch': 2.6.6
       abort-controller: 3.0.0
       agentkeepalive: 4.5.0
@@ -3619,7 +3619,7 @@ packages:
   /@types/node-fetch@2.6.6:
     resolution: {integrity: sha512-95X8guJYhfqiuVVhRFxVQcf4hW/2bCuoPwDasMf/531STFoNoWTT7YDnWdXHEZKqAGUigmpG31r2FE70LwnzJw==}
     dependencies:
-      '@types/node': 18.18.1
+      '@types/node': 18.18.3
       form-data: 4.0.0
     dev: false
 
@@ -3627,8 +3627,12 @@ packages:
     resolution: {integrity: sha512-3G42sxmm0fF2+Vtb9TJQpnjmP+uKlWvFa8KoEGquh4gqRmoUG/N0ufuhikw6HEsdG2G2oIKhog1GCTfz9v5NdQ==}
     dev: false
 
-  /@types/node@20.6.3:
-    resolution: {integrity: sha512-HksnYH4Ljr4VQgEy2lTStbCKv/P590tmPe5HqOnv9Gprffgv5WXAY+Y5Gqniu0GGqeTCUdBnzC3QSrzPkBkAMA==}
+  /@types/node@18.18.3:
+    resolution: {integrity: sha512-0OVfGupTl3NBFr8+iXpfZ8NR7jfFO+P1Q+IO/q0wbo02wYkP5gy36phojeYWpLQ6WAMjl+VfmqUk2YbUfp0irA==}
+    dev: false
+
+  /@types/node@20.8.2:
+    resolution: {integrity: sha512-Vvycsc9FQdwhxE3y3DzeIxuEJbWGDsnrxvMADzTDF/lcdR9/K+AQIeAghTQsHtotg/q0j3WEOYS/jQgSdWue3w==}
     dev: true
 
   /@types/prop-types@15.7.6:
@@ -5232,7 +5236,7 @@ packages:
     resolution: {integrity: sha512-EzV94NYKoO09GLXGjXj9JIlXijVck4ONSr5wiCWDvhsvj5jxSrzTmRU/9C1DyB6uToszLs8aifA6NQ7lEQdvFw==}
     engines: {node: '>= 0.8'}
     dependencies:
-      '@types/node': 20.6.3
+      '@types/node': 20.8.2
       require-like: 0.1.2
     dev: true
 
@@ -7496,11 +7500,11 @@ packages:
       mimic-fn: 2.1.0
     dev: true
 
-  /openai@4.11.0:
-    resolution: {integrity: sha512-zU/MJxZTijL0Ym6CKoQPbnmHDsGZlH9g5zorPszdc41OyLxlhnlrorBcGzmGS9qpnjGGNncJR1hfg/mXq0OONw==}
+  /openai@4.11.1:
+    resolution: {integrity: sha512-GU0HQWbejXuVAQlDjxIE8pohqnjptFDIm32aPlNT1H9ucMz1VJJD0DaTJRQsagNaJ97awWjjVLEG7zCM6sm4SA==}
     hasBin: true
     dependencies:
-      '@types/node': 18.18.1
+      '@types/node': 18.18.3
       '@types/node-fetch': 2.6.6
       abort-controller: 3.0.0
       agentkeepalive: 4.5.0
@@ -7532,7 +7536,7 @@ packages:
     resolution: {integrity: sha512-JN0t628Kh95T0IrXl0HdBqnlJg+4Vq0Bnh55tio+dfCnyzHvMLiWyCM9m726MAJD2YkDU4/8RQB6rNbEq9ct2w==}
     hasBin: true
     dependencies:
-      '@types/node': 18.18.1
+      '@types/node': 18.18.3
       '@types/node-fetch': 2.6.6
       abort-controller: 3.0.0
       agentkeepalive: 4.5.0
