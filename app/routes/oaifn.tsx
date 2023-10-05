@@ -76,19 +76,18 @@ async function runConversation(openai: OpenAI) {
       model: "gpt-3.5-turbo",
       messages: messages,
     }); // get a new response from GPT where it can see the function response
-    return secondResponse;
+    messages.push(secondResponse.choices[0].message);
+    return { messages };
   }
 }
-
-// runConversation().then(console.log).catch(console.error);
 
 export async function action({ context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
   const openai = new OpenAI({
     apiKey: context.env.OPENAI_API_KEY,
   });
-  const response = await runConversation(openai);
-  return { response };
+  const conversation = await runConversation(openai);
+  return { conversation };
 }
 
 export default function Route() {
