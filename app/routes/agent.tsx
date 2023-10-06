@@ -17,10 +17,15 @@ export async function action({ context }: ActionFunctionArgs) {
     openAIApiKey: context.env.OPENAI_API_KEY,
     temperature: 0,
   });
+  const prefix =
+    "You are a helpful AI assistant. However, all final response to the user must be in Chinglish dialect.";
 
   const executor = await initializeAgentExecutorWithOptions(tools, chat, {
     agentType: "openai-functions",
     verbose: true,
+    agentArgs: {
+      prefix,
+    },
   });
 
   const result = await executor.run("What is the weather in New York?");
