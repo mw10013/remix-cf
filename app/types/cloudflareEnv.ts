@@ -8,6 +8,7 @@ const cloudflareEnvSchema = z.object({
   REDOX_API_PUBLIC_KID: z.string().min(1),
   REDOX_API_PRIVATE_JWK: z.string().min(1),
   REDOX_ENDPOINT_VERIFICATION_TOKEN: z.string().min(1),
+  SERPAPI_API_KEY: z.string().min(1),
   // SUPABASE_URL: z.string().min(1),
   // SUPABASE_ANON_KEY: z.string().min(1),
   // SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
