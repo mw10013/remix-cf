@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Accordion,
   AccordionItem,
@@ -12,7 +13,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
 import { BaseMessageChunk } from "langchain/schema";
-import { RunnableSequence } from "langchain/schema/runnable";
+import { RunnableMap, RunnableSequence } from "langchain/schema/runnable";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function action({ context }: ActionFunctionArgs) {
@@ -35,6 +36,11 @@ export async function action({ context }: ActionFunctionArgs) {
     outputKey: "output",
     memoryKey: "history",
   });
+
+  //   const memChain = RunnableMap.from({{
+  //     input: (initialInput) => initialInput.input,
+  //     memory: () => memory.loadMemoryVariables({}),
+  //   }})
 
   const chain = RunnableSequence.from<{ input: string }, BaseMessageChunk>([
     {
