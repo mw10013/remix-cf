@@ -1,10 +1,17 @@
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+} from "@nextui-org/react";
 import { ActionFunctionArgs } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
-import { BaseMessage, BaseMessageChunk } from "langchain/schema";
+import { BaseMessageChunk } from "langchain/schema";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
@@ -29,13 +36,7 @@ export async function action({ context }: ActionFunctionArgs) {
     memoryKey: "history",
   });
 
-  console.log(await memory.loadMemoryVariables({}));
-  /*
-    { history: [] }
-  */
-
   const chain = RunnableSequence.from<{ input: string }, BaseMessageChunk>([
-    //   const chain = RunnableSequence.from<{ input: string }, BaseMessage>([
     {
       input: (initialInput) => initialInput.input,
       memory: () => memory.loadMemoryVariables({}),
@@ -52,39 +53,15 @@ export async function action({ context }: ActionFunctionArgs) {
     input: "Hey, I'm Bob!",
   };
   const response = await chain.invoke(inputs);
-  console.log(response);
-
-  /*
-    AIMessage {
-      content: " Hi Bob, nice to meet you! I'm Claude, an AI assistant created by Anthropic to be helpful, harmless, and honest.",
-      additional_kwargs: {}
-    }
-  */
-
   await memory.saveContext(inputs, {
     output: response.content,
   });
   console.log(await memory.loadMemoryVariables({}));
-  /*
-    {
-      history: [
-        HumanMessage {
-          content: "Hey, I'm Bob!",
-          additional_kwargs: {}
-        },
-        AIMessage {
-          content: " Hi Bob, nice to meet you! I'm Claude, an AI assistant created by Anthropic to be helpful, harmless, and honest.",
-          additional_kwargs: {}
-        }
-      ]
-    }
-  */
 
   const inputs2 = {
     input: "What's my name?",
   };
   const response2 = await chain.invoke(inputs2);
-  console.log(response2);
   return {
     chain,
     inputs,
@@ -109,7 +86,31 @@ export default function Route() {
           </Form>
         </CardBody>
       </Card>
-      <pre className="mt-2">{JSON.stringify(actionData, null, 2)}</pre>
+      {actionData && (
+        <Accordion
+          isCompact
+          selectionMode="multiple"
+          defaultExpandedKeys={["1"]}
+        >
+          <AccordionItem key="1" aria-label="Chat" title="Chat">
+            <pre>
+              {JSON.stringify(
+                {
+                  inputs: actionData.inputs,
+                  response: actionData.response,
+                  inputs2: actionData.inputs2,
+                  response2: actionData.response2,
+                },
+                null,
+                2,
+              )}
+            </pre>
+          </AccordionItem>
+          <AccordionItem key="2" aria-label="Chain" title="Chain">
+            <pre>{JSON.stringify(actionData.chain, null, 2)}</pre>
+          </AccordionItem>
+        </Accordion>
+      )}
     </div>
   );
 }
