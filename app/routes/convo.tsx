@@ -23,7 +23,6 @@ export async function action({ context }: ActionFunctionArgs) {
   });
   const prompt = PromptTemplate.fromTemplate(TEMPLATE);
   const outputParser = new StringOutputParser();
-  //   const chain = prompt.pipe(model);
   const chain = RunnableSequence.from([prompt, model, outputParser]);
   const result = await chain.invoke({
     chat_history: "",
