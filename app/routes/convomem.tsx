@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Accordion,
   AccordionItem,
@@ -13,7 +12,12 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
 import { BaseMessageChunk } from "langchain/schema";
-import { RunnableMap, RunnableSequence } from "langchain/schema/runnable";
+import {
+  RunnableLike,
+  RunnableMap,
+  RunnableSequence,
+} from "langchain/schema/runnable";
+import { MemoryVariables } from "node_modules/langchain/dist/memory/base";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function action({ context }: ActionFunctionArgs) {
@@ -37,10 +41,21 @@ export async function action({ context }: ActionFunctionArgs) {
     memoryKey: "history",
   });
 
-  //   const memChain = RunnableMap.from({{
-  //     input: (initialInput) => initialInput.input,
-  //     memory: () => memory.loadMemoryVariables({}),
-  //   }})
+  type TRunInput = { input: string };
+  const steps: Record<
+    string,
+    RunnableLike<TRunInput, string | Promise<MemoryVariables>>
+  > = {
+    input: (initialInput) => initialInput.input,
+    memory: () => memory.loadMemoryVariables({}),
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+  const memChain = RunnableMap.from<TRunInput>({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+    input: (initialInput) => initialInput.input,
+    memory: () => memory.loadMemoryVariables({}),
+  });
 
   const chain = RunnableSequence.from<{ input: string }, BaseMessageChunk>([
     {
@@ -48,7 +63,9 @@ export async function action({ context }: ActionFunctionArgs) {
       memory: () => memory.loadMemoryVariables({}),
     },
     {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
       input: (previousOutput) => previousOutput.input,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
       history: (previousOutput) => previousOutput.memory.history,
     },
     prompt,
