@@ -12,12 +12,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
 import { BaseMessageChunk } from "langchain/schema";
-import {
-  RunnableLike,
-  RunnableMap,
-  RunnableSequence,
-} from "langchain/schema/runnable";
-import { MemoryVariables } from "node_modules/langchain/dist/memory/base";
+import { RunnableSequence } from "langchain/schema/runnable";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function action({ context }: ActionFunctionArgs) {
@@ -39,22 +34,6 @@ export async function action({ context }: ActionFunctionArgs) {
     inputKey: "input",
     outputKey: "output",
     memoryKey: "history",
-  });
-
-  type TRunInput = { input: string };
-  const steps: Record<
-    string,
-    RunnableLike<TRunInput, string | Promise<MemoryVariables>>
-  > = {
-    input: (initialInput) => initialInput.input,
-    memory: () => memory.loadMemoryVariables({}),
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-  const memChain = RunnableMap.from<TRunInput>({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-    input: (initialInput) => initialInput.input,
-    memory: () => memory.loadMemoryVariables({}),
   });
 
   const chain = RunnableSequence.from<{ input: string }, BaseMessageChunk>([
