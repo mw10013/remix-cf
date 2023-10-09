@@ -7,6 +7,7 @@
 - Use [Deploy a Remix Site Guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-remix-site/#deploying-with-cloudflare-pages).
 - Environment Variable (for Production and Preview): .dev.vars.example
 - Redox
+
   - Developer | API Keys | Create API Key
     - Name: mw
     - Key pairs | Generate your keys | Generate New API Keys
@@ -16,6 +17,14 @@
     - Redox API Endpoint: [cloudflare tunnel to localhost from tunnel script in package.json]
     - Verification Token: [REDOX_ENDPOINT_VERIFICATION_TOKEN env var]
     - Verification Method: POST
+  - D1
+
+    - https://developers.cloudflare.com/pages/platform/functions/bindings/#d1-databases
+    - Workers & Pages | D1 | Create database | Dashboard
+      - Name: rcf_db
+    - Workers & Pages | Settings | Functions | D1 database bindings | Production | Add binding
+      - Variable name RCF_DB = rcf_db
+      - Also do this for Preview
 
 ### Reference
 
