@@ -58,7 +58,6 @@ export async function action({ context }: ActionFunctionArgs) {
   await memory.saveContext(inputs, {
     output: response.content,
   });
-  console.log(await memory.loadMemoryVariables({}));
 
   const inputs2 = {
     input: "What's my name?",
@@ -66,6 +65,7 @@ export async function action({ context }: ActionFunctionArgs) {
   const response2 = await chain.invoke(inputs2);
   return {
     chain,
+    memory: await memory.loadMemoryVariables({}),
     inputs,
     content: response.content,
     response,
@@ -108,7 +108,10 @@ export default function Route() {
               )}
             </pre>
           </AccordionItem>
-          <AccordionItem key="2" aria-label="Chain" title="Chain">
+          <AccordionItem key="2" aria-label="Memory" title="Memory">
+            <pre>{JSON.stringify(actionData.memory, null, 2)}</pre>
+          </AccordionItem>
+          <AccordionItem key="3" aria-label="Chain" title="Chain">
             <pre>{JSON.stringify(actionData.chain, null, 2)}</pre>
           </AccordionItem>
         </Accordion>
