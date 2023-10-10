@@ -26,25 +26,14 @@
       - Variable name RCF_DB = rcf_db
       - Also do this for Preview
 
-### Reference
+## D1
 
-- Workers & Pages | KV | Create a namespace
-  - Add Namespace Name KV
-  - Settings | Functions | KV namespace bindings | Production | Add binding
-  - Variable name KV = KV namespace KV
-  - Also do this for Preview
-- R2 | Overview | Create bucket
-  - Bucket name smn-r2
-  - Settings | Functions | R2 bucket bindings | Production | Add binding
-    - Variable name SMN_R2 = Bucket smn-r2
-    - Also do this for Preview
-- Custom Domains
-  - Set up a custom domain: namewave.io
-- Supabase Dashboard
-  - Project Settings | Auth | User Signups | Allow new users to sign up: on
-  - Authentication | URL Configuration
-    - Site URL: https://namewave.io
-    - Redirect URLs: https://\*.namewave.pages.dev/\*\*
+- May need to create wrangler.toml manually and set d1_database settings.
+
+```
+pnpm wrangler d1 execute rcf_db --local --file=./d1/schema.sql
+pnpm wrangler d1 execute rcf_db --local --command='select * from customers'
+```
 
 # Welcome to Remix!
 

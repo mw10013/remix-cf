@@ -1,0 +1,9 @@
+# https://developers.cloudflare.com/workers/configuration/compatibility-dates/
+compatibility_date = "2023-10-10"
+
+# https://developers.cloudflare.com/d1/learning/local-development/#develop-locally-with-pages
+[[ d1_databases ]]
+binding = "RCF_DB"
+database_name = "rcf_db"
+database_id = "f4776fbe-1a62-41cb-bf68-2229ff8ee34a"
+preview_database_id = "RCF_DB"

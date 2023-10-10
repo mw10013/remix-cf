@@ -7,6 +7,7 @@ functions/metafile.*
 functions/version.txt
 public/build
 .dev.vars
+.wrangler
 .local
 
 .DS_Store
