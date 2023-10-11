@@ -47,6 +47,7 @@
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.2",
     "@typescript-eslint/parser": "^6.7.2",
+    "better-sqlite3": "^9.0.0",
     "dotenv": "^16.3.1",
     "drizzle-kit": "^0.19.13",
     "eslint": "^8.49.0",
