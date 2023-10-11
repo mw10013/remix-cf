@@ -31,8 +31,8 @@
 - May need to create wrangler.toml manually and set d1_database settings.
 
 ```
-pnpm wrangler d1 execute rcf_db --local --file=./d1/schema.sql
-pnpm wrangler d1 execute rcf_db --local --command='select * from customers'
+pnpm wrangler d1 execute rcf_db --file=./d1/schema.sql --local
+pnpm wrangler d1 execute rcf_db --command='select * from customers' --local
 ```
 
 # Welcome to Remix!
