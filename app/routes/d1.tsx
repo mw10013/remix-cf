@@ -21,7 +21,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   invariant(typeof name === "string" && name.length > 0, "name is invalid");
   const result = await db
     .insert(users)
-    .values({ name, email: `${name}@email.com` });
+    // .values({ name, email: `${name}@email.com` });
+    .values({ name });
   return { result };
 }
 
