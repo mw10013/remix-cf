@@ -35,6 +35,10 @@ pnpm wrangler d1 execute rcf_db --file=./d1/schema.sql --local
 pnpm wrangler d1 execute rcf_db --command='select * from users' --local
 pnpm wrangler d1 execute rcf_db --command='pragma table_list' --local
 pnpm wrangler d1 execute rcf_db --command='pragma table_info(users)' --local
+pnpm wrangler d1 execute rcf_db --command='pragma table_info(d1_migrations)' --local
+pnpm wrangler d1 execute rcf_db --command='select name, sql from sqlite_master' --local
+pnpm wrangler d1 execute rcf_db --command='select * from d1_migrations' --local
+pnpm wrangler d1 migrations list rcf_db --local
 ```
 
 # Welcome to Remix!

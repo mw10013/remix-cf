@@ -8,9 +8,6 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   assertCloudflareEnv(context.env);
-  // const db = context.env.RCF_DB;
-  // const stmt = db.prepare("select * from customers");
-  // const result = await stmt.all();
   const db = drizzle(context.env.RCF_DB);
   const result = await db.select().from(users).all();
   return { result };

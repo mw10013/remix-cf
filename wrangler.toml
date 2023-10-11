@@ -10,3 +10,5 @@ database_id = "f4776fbe-1a62-41cb-bf68-2229ff8ee34a"
 # https://developers.cloudflare.com/d1/platform/migrations/#wrangler-customizations
 # Says binding should be <BINDING_NAME> and preview_database_id should be <UUID>
 preview_database_id = "RCF_DB"
+migrations_table = "d1_migrations"
+migrations_dir = "drizzle"
