@@ -16,7 +16,9 @@
     "tunnel": "cloudflared tunnel --url http://localhost:8788",
     "drizzle:generate": "drizzle-kit generate:sqlite",
     "drizzle:up": "drizzle-kit up:sqlite",
-    "drizzle:check": "drizzle-kit check:sqlite"
+    "drizzle:check": "drizzle-kit check:sqlite",
+    "d1:migrate:list": "wrangler d1 migrations list rcf_db --local",
+    "d1:migrate:apply": "wrangler d1 migrations apply rcf_db --local"
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
