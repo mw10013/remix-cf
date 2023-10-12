@@ -42,6 +42,12 @@ pnpm wrangler d1 migrations list rcf_db --local
 pnpm wrangler d1 migrations apply rcf_db --local
 ```
 
+## Scripts
+
+```
+pnpm tsx scripts/sb.ts
+```
+
 # Welcome to Remix!
 
 - [Remix Docs](https://remix.run/docs)
