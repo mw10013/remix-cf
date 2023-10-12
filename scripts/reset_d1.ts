@@ -1,5 +1,10 @@
 import { $, glob } from "zx";
 
+/**
+ * Reset the local d1 database in .wrangler and apply migrations.
+ * This will only work locally
+ */
+
 const sqliteFiles = await glob("./.wrangler/**/*.sqlite");
 console.log({ sqliteFiles });
 
@@ -8,6 +13,6 @@ if (sqliteFiles.length !== 1) {
   process.exit(1);
 }
 
-await $`sqlite3 ${sqliteFiles[0]} "pragma table_list;"`;
 await $`sqlite3 ${sqliteFiles[0]} < scripts/reset_sqlite.sql`;
+await $`wrangler d1 migrations apply rcf_db --local`;
 await $`sqlite3 ${sqliteFiles[0]} "pragma table_list;"`;

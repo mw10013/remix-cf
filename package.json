@@ -18,7 +18,8 @@
     "drizzle:up": "drizzle-kit up:sqlite",
     "drizzle:check": "drizzle-kit check:sqlite",
     "d1:migrate:list": "wrangler d1 migrations list rcf_db --local",
-    "d1:migrate:apply": "wrangler d1 migrations apply rcf_db --local"
+    "d1:migrate:apply": "wrangler d1 migrations apply rcf_db --local",
+    "d1:reset": "tsx scripts/reset_d1.ts"
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
