@@ -19,7 +19,7 @@
     "drizzle:check": "drizzle-kit check:sqlite",
     "d1:migrate:list": "wrangler d1 migrations list rcf_db --local",
     "d1:migrate:apply": "wrangler d1 migrations apply rcf_db --local",
-    "d1:reset": "tsx scripts/d1_rewset.ts",
+    "d1:reset": "tsx scripts/d1_reset.ts",
     "d1:push": "tsx scripts/d1_push.ts"
   },
   "dependencies": {
