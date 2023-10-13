@@ -1,4 +1,10 @@
+import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+export const chats = sqliteTable("chats", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  created_at: text("timestamp").default(sql`CURRENT_TIMESTAMP`),
+});
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey(),

@@ -19,7 +19,8 @@
     "drizzle:check": "drizzle-kit check:sqlite",
     "d1:migrate:list": "wrangler d1 migrations list rcf_db --local",
     "d1:migrate:apply": "wrangler d1 migrations apply rcf_db --local",
-    "d1:reset": "tsx scripts/reset_d1.ts"
+    "d1:reset": "tsx scripts/d1_rewset.ts",
+    "d1:push": "tsx scripts/d1_push.ts"
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
@@ -33,8 +34,8 @@
     "framer-motion": "^10.16.4",
     "isbot": "^3.6.8",
     "jose": "^4.14.6",
-    "langchain": "^0.0.163",
-    "openai": "^4.11.1",
+    "langchain": "^0.0.166",
+    "openai": "^4.12.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tiny-invariant": "^1.3.1",
