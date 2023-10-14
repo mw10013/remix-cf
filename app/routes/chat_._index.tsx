@@ -1,8 +1,13 @@
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
-import { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Button, Card, CardBody, CardHeader, Link } from "@nextui-org/react";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/cloudflare";
+import { Link as RemixLink, useLoaderData } from "@remix-run/react";
 import { desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { Trash2 } from "lucide-react";
 import { Chats } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
@@ -17,11 +22,15 @@ export async function loader({ context }: LoaderFunctionArgs) {
   return { chats };
 }
 
-export async function action({ context }: LoaderFunctionArgs) {
+export async function action({ context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.RCF_DB);
-  await db.insert(Chats).values({});
-  return null;
+  const [{ id }] = await db
+    .insert(Chats)
+    .values({})
+    .returning({ id: Chats.id });
+  console.log("chat index: action: id:", id);
+  return redirect(`/chat/${id}`);
 }
 
 export default function Route() {
@@ -38,8 +47,18 @@ export default function Route() {
           </form>
           <div>
             {data.chats.map((chat) => (
-              <div key={chat.id}>
-                {chat.id} {chat.createdAt}
+              <div key={chat.id} className="flex items-center justify-between">
+                <Link
+                  as={RemixLink}
+                  to={`/chat/${chat.id}`}
+                  color="foreground"
+                  underline="hover"
+                >
+                  {chat.createdAt}
+                </Link>
+                <Button isIconOnly variant="light">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>
