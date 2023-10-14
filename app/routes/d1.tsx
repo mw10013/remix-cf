@@ -3,13 +3,13 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { drizzle } from "drizzle-orm/d1";
 import invariant from "tiny-invariant";
-import { users } from "~/lib/db/schema";
+import { Users } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.RCF_DB);
-  const result = await db.select().from(users).all();
+  const result = await db.select().from(Users).all();
   return { result };
 }
 
@@ -19,10 +19,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const name = formData.get("name");
   invariant(typeof name === "string" && name.length > 0, "name is invalid");
-  const result = await db
-    .insert(users)
-    // .values({ name, email: `${name}@email.com` });
-    .values({ name });
+  const result = await db.insert(Users).values({ name });
   return { result };
 }
 

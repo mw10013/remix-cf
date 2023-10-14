@@ -3,7 +3,7 @@ import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { chats } from "~/lib/db/schema";
+import { Chats } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -11,8 +11,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
   const db = drizzle(context.env.RCF_DB);
   const chats = await db
     .select()
-    .from(chats)
-    .orderBy(desc(chats.createdAt))
+    .from(Chats)
+    .orderBy(desc(Chats.createdAt))
     .all();
   return { chats };
 }
@@ -20,7 +20,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 export async function action({ context }: LoaderFunctionArgs) {
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.RCF_DB);
-  await db.insert(chats).values({});
+  await db.insert(Chats).values({});
   return null;
 }
 
@@ -36,7 +36,13 @@ export default function Route() {
               New
             </Button>
           </form>
-          <div></div>
+          <div>
+            {data.chats.map((chat) => (
+              <div key={chat.id}>
+                {chat.id} {chat.createdAt}
+              </div>
+            ))}
+          </div>
         </CardBody>
       </Card>
       <pre>{JSON.stringify(data, null, 2)}</pre>
