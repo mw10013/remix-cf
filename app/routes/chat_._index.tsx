@@ -4,10 +4,11 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/cloudflare";
-import { Link as RemixLink, useLoaderData } from "@remix-run/react";
-import { desc } from "drizzle-orm";
+import { Link as RemixLink, useFetcher, useLoaderData } from "@remix-run/react";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Trash2 } from "lucide-react";
+import invariant from "tiny-invariant";
 import { Chats } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
@@ -22,15 +23,62 @@ export async function loader({ context }: LoaderFunctionArgs) {
   return { chats };
 }
 
-export async function action({ context }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.RCF_DB);
-  const [{ id }] = await db
-    .insert(Chats)
-    .values({})
-    .returning({ id: Chats.id });
-  console.log("chat index: action: id:", id);
-  return redirect(`/chat/${id}`);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  switch (intent) {
+    case "new": {
+      const [{ id }] = await db
+        .insert(Chats)
+        .values({})
+        .returning({ id: Chats.id });
+      return redirect(`/chat/${id}`);
+    }
+    case "delete": {
+      const id = Number(formData.get("id"));
+      invariant(!isNaN(id) && id !== 0, "invalid id");
+      await db.delete(Chats).where(eq(Chats.id, id));
+      return null;
+    }
+    default: {
+      throw new Error("Invalid intent");
+    }
+  }
+}
+
+function ChatItem({
+  chat,
+}: {
+  chat: Awaited<ReturnType<typeof loader>>["chats"][0];
+}) {
+  const fetcher = useFetcher();
+
+  return (
+    <div className="flex items-center justify-between">
+      <Link
+        as={RemixLink}
+        to={`/chat/${chat.id}`}
+        color="foreground"
+        underline="hover"
+      >
+        {chat.createdAt}
+      </Link>
+      <fetcher.Form method="POST">
+        <input type="hidden" name="id" value={chat.id} />
+        <Button
+          type="submit"
+          name="intent"
+          value="delete"
+          isIconOnly
+          variant="light"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </fetcher.Form>
+    </div>
+  );
 }
 
 export default function Route() {
@@ -41,25 +89,13 @@ export default function Route() {
         <CardHeader>Chats</CardHeader>
         <CardBody className="flex flex-col gap-2">
           <form method="POST" className="flex flex-col gap-2">
-            <Button type="submit" color="primary">
+            <Button type="submit" name="intent" value="new" color="primary">
               New
             </Button>
           </form>
           <div>
             {data.chats.map((chat) => (
-              <div key={chat.id} className="flex items-center justify-between">
-                <Link
-                  as={RemixLink}
-                  to={`/chat/${chat.id}`}
-                  color="foreground"
-                  underline="hover"
-                >
-                  {chat.createdAt}
-                </Link>
-                <Button isIconOnly variant="light">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <ChatItem key={chat.id} chat={chat} />
             ))}
           </div>
         </CardBody>

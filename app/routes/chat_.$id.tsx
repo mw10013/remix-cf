@@ -10,7 +10,6 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   invariant(params.id, "invalid id");
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.RCF_DB);
-  //   const chat = await db.query.
   const chats = await db
     .select()
     .from(Chats)
@@ -19,12 +18,6 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   if (chats.length !== 1) {
     throw new Error("invalid chat");
   }
-
-  // .where(Chats.id.eq(params.id))
-  // .first();
-  //   if (!chat) {
-  //     throw new Response("Not found", { status: 404 });
-  //   }
   return { chat: chats[0] };
 }
 
