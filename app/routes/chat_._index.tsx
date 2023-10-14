@@ -9,12 +9,12 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 export async function loader({ context }: LoaderFunctionArgs) {
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.RCF_DB);
-  const result = await db
+  const chats = await db
     .select()
     .from(chats)
     .orderBy(desc(chats.createdAt))
     .all();
-  return { result };
+  return { chats };
 }
 
 export async function action({ context }: LoaderFunctionArgs) {
@@ -30,12 +30,13 @@ export default function Route() {
     <div className="flex flex-col gap-2">
       <Card className="mx-auto max-w-md">
         <CardHeader>Chats</CardHeader>
-        <CardBody>
+        <CardBody className="flex flex-col gap-2">
           <form method="POST" className="flex flex-col gap-2">
             <Button type="submit" color="primary">
               New
             </Button>
           </form>
+          <div></div>
         </CardBody>
       </Card>
       <pre>{JSON.stringify(data, null, 2)}</pre>
