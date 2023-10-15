@@ -3,12 +3,15 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { getTableConfig } from "drizzle-orm/sqlite-core";
 import { ChatOpenAI } from "langchain/chat_models/openai";
+import { BufferMemory } from "langchain/memory";
 import { PromptTemplate } from "langchain/prompts";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import { RunnableSequence } from "langchain/schema/runnable";
+import { CloudflareD1MessageHistory } from "langchain/stores/message/cloudflare_d1";
 import invariant from "tiny-invariant";
-import { Chats } from "~/lib/db/schema";
+import { ChatMessages, Chats } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 const TEMPLATE = `You are a dim sum server in chinatown nyc. All responses must be Chinglish dialect that an English speaker can understand.
@@ -49,7 +52,23 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   if (chats.length !== 1) {
     throw new Error("invalid chat");
   }
-  return { chat: chats[0] };
+
+  // const memory = new BufferMemory({
+  //   returnMessages: true,
+  //   chatHistory: new CloudflareD1MessageHistory({
+  //     // tableName: "d1chat_message",
+  //     tableName: ChatMessages.name,
+  //     sessionId: "d1chat_sessionid_1",
+  //     database: context.env.DB,
+  //   }),
+  // });
+
+  console.log("ChatMessages:", ChatMessages);
+  console.log("ChatMessages: config:", getTableConfig(ChatMessages));
+  // console.log("ChatMessages_:", ChatMessages._);
+  // console.log("ChatMessages._.name:", ChatMessages.tableName());
+
+  return { tableName: getTableConfig(ChatMessages).name, chat: chats[0] };
 }
 
 export default function Route() {
