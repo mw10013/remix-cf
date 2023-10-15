@@ -28,9 +28,3 @@ export const ChatMessages = sqliteTable(
     };
   },
 );
-
-export const Users = sqliteTable("Users", {
-  id: integer("id").primaryKey(),
-  name: text("name").notNull(),
-  comment: text("comment"),
-});
