@@ -56,7 +56,7 @@ function ChatItem({
   const fetcher = useFetcher();
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <Link
         as={RemixLink}
         to={`/chat/${chat.id}`}
