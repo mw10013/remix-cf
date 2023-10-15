@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "b9227f3a-f131-4b20-8066-d12a543331b9",
+  "id": "e746004e-ad23-445e-853f-74f380f8887a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "ChatMessages": {
@@ -14,8 +14,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "sessionId": {
-          "name": "sessionId",
+        "session_id": {
+          "name": "session_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -58,21 +58,21 @@
         }
       },
       "indexes": {
-        "sessionIdIndex": {
-          "name": "sessionIdIndex",
+        "session_id_index": {
+          "name": "session_id_index",
           "columns": [
-            "sessionId"
+            "session_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "ChatMessages_sessionId_Chats_id_fk": {
-          "name": "ChatMessages_sessionId_Chats_id_fk",
+        "ChatMessages_session_id_Chats_id_fk": {
+          "name": "ChatMessages_session_id_Chats_id_fk",
           "tableFrom": "ChatMessages",
           "tableTo": "Chats",
           "columnsFrom": [
-            "sessionId"
+            "session_id"
           ],
           "columnsTo": [
             "id"
@@ -101,36 +101,6 @@
           "notNull": false,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "Users": {
-      "name": "Users",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "comment": {
-          "name": "comment",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
         }
       },
       "indexes": {},

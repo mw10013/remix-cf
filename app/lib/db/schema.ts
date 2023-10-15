@@ -8,12 +8,13 @@ export const Chats = sqliteTable("Chats", {
 
 /**
  * Must align with CloudflareD1MessageHistory schema in ensureTable() method.
+ * Reason for session_id and not sessionId.
  */
 export const ChatMessages = sqliteTable(
   "ChatMessages",
   {
     id: text("id").primaryKey(),
-    sessionId: text("sessionId")
+    session_id: text("session_id")
       .notNull()
       .references(() => Chats.id, { onDelete: "cascade" }), // https://www.answeroverflow.com/m/1110915016959475743
     type: text("type").notNull(),
@@ -24,7 +25,7 @@ export const ChatMessages = sqliteTable(
   },
   (table) => {
     return {
-      sessionIdIndex: index("sessionIdIndex").on(table.sessionId),
+      session_id_index: index("session_id_index").on(table.session_id),
     };
   },
 );

@@ -44,31 +44,27 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   invariant(params.id, "invalid id");
   assertCloudflareEnv(context.env);
   const db = drizzle(context.env.DB);
-  const chats = await db
+  const [chat] = await db
     .select()
     .from(Chats)
     .where(eq(Chats.id, Number(params.id)));
+  invariant(chat, "invalid chat");
 
-  if (chats.length !== 1) {
-    throw new Error("invalid chat");
-  }
+  const memory = new BufferMemory({
+    returnMessages: true,
+    chatHistory: new CloudflareD1MessageHistory({
+      tableName: getTableConfig(ChatMessages).name,
+      sessionId: chat.id.toString(),
+      database: context.env.DB,
+    }),
+  });
+  const memoryVariables = await memory.loadMemoryVariables({});
 
-  // const memory = new BufferMemory({
-  //   returnMessages: true,
-  //   chatHistory: new CloudflareD1MessageHistory({
-  //     // tableName: "d1chat_message",
-  //     tableName: ChatMessages.name,
-  //     sessionId: "d1chat_sessionid_1",
-  //     database: context.env.DB,
-  //   }),
-  // });
-
-  console.log("ChatMessages:", ChatMessages);
-  console.log("ChatMessages: config:", getTableConfig(ChatMessages));
-  // console.log("ChatMessages_:", ChatMessages._);
-  // console.log("ChatMessages._.name:", ChatMessages.tableName());
-
-  return { tableName: getTableConfig(ChatMessages).name, chat: chats[0] };
+  return {
+    memoryVariables,
+    tableName: getTableConfig(ChatMessages).name,
+    chat,
+  };
 }
 
 export default function Route() {
