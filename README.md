@@ -23,7 +23,7 @@
     - Workers & Pages | D1 | Create database | Dashboard
       - Name: rcf_db
     - Workers & Pages | Settings | Functions | D1 database bindings | Production | Add binding
-      - Variable name RCF_DB = rcf_db
+      - Variable name DB = rcf_db
       - Also do this for Preview
 
 ## D1

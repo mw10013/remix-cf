@@ -8,14 +8,14 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   assertCloudflareEnv(context.env);
-  const db = drizzle(context.env.RCF_DB);
+  const db = drizzle(context.env.DB);
   const result = await db.select().from(Users).all();
   return { result };
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
-  const db = drizzle(context.env.RCF_DB);
+  const db = drizzle(context.env.DB);
   const formData = await request.formData();
   const name = formData.get("name");
   invariant(typeof name === "string" && name.length > 0, "name is invalid");

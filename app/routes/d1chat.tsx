@@ -30,7 +30,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     chatHistory: new CloudflareD1MessageHistory({
       tableName: "d1chat_message",
       sessionId: "d1chat_sessionid_1",
-      database: context.env.RCF_DB,
+      database: context.env.DB,
     }),
   });
 

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual -c \"npm run start\"",
-    "start": "wrangler pages dev --compatibility-date=2023-06-21 ./public --d1=RCF_DB",
+    "start": "wrangler pages dev --compatibility-date=2023-06-21 ./public --d1=DB",
     "format": "pnpm prettier --write .",
     "lint": "pnpm eslint .",
     "typecheck": "tsc",

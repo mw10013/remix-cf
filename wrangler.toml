@@ -2,13 +2,13 @@
 compatibility_date = "2023-10-10"
 
 [[ d1_databases ]]
-binding = "RCF_DB"
+binding = "DB"
 database_name = "rcf_db"
 database_id = "f4776fbe-1a62-41cb-bf68-2229ff8ee34a"
 # https://developers.cloudflare.com/d1/learning/local-development/#develop-locally-with-pages
 # Says binding match preview_database_id and does not look like <UUID>
 # https://developers.cloudflare.com/d1/platform/migrations/#wrangler-customizations
 # Says binding should be <BINDING_NAME> and preview_database_id should be <UUID>
-preview_database_id = "RCF_DB"
+preview_database_id = "DB"
 migrations_table = "d1_migrations"
 migrations_dir = "drizzle"

@@ -14,7 +14,7 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   assertCloudflareEnv(context.env);
-  const db = drizzle(context.env.RCF_DB);
+  const db = drizzle(context.env.DB);
   const chats = await db
     .select()
     .from(Chats)
@@ -25,7 +25,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   assertCloudflareEnv(context.env);
-  const db = drizzle(context.env.RCF_DB);
+  const db = drizzle(context.env.DB);
   const formData = await request.formData();
   const intent = formData.get("intent");
   switch (intent) {

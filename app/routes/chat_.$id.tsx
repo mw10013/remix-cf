@@ -9,7 +9,7 @@ import { assertCloudflareEnv } from "~/types/cloudflareEnv";
 export async function loader({ params, context }: LoaderFunctionArgs) {
   invariant(params.id, "invalid id");
   assertCloudflareEnv(context.env);
-  const db = drizzle(context.env.RCF_DB);
+  const db = drizzle(context.env.DB);
   const chats = await db
     .select()
     .from(Chats)
