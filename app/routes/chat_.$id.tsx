@@ -1,10 +1,17 @@
-import { Button, Card, CardBody, CardHeader, Input } from "@nextui-org/react";
+import React from "react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Textarea,
+} from "@nextui-org/react";
 import {
   ActionFunctionArgs,
   DataFunctionArgs,
   LoaderFunctionArgs,
 } from "@remix-run/cloudflare";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData, useSubmit } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { getTableConfig } from "drizzle-orm/sqlite-core";
@@ -97,13 +104,26 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
 export default function Route() {
   const data = useLoaderData<typeof loader>();
+  const submit = useSubmit();
   return (
     <div className="flex flex-col gap-2">
       <Card className="mx-auto max-w-2xl">
         <CardHeader>Conversation</CardHeader>
         <CardBody>
           <Form method="POST" className="flex flex-col gap-2">
-            <Input type="text" label="Input" isRequired name="input" />
+            <Textarea
+              name="input"
+              minRows={2}
+              maxRows={7}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (e.target instanceof HTMLTextAreaElement) {
+                    submit(e.target.form);
+                  }
+                }
+              }}
+            />
             <Button type="submit" color="primary">
               Submit
             </Button>
