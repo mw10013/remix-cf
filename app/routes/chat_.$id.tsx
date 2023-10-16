@@ -115,13 +115,18 @@ export default function Route() {
       <Card className="mx-auto max-w-2xl">
         <CardHeader>Conversation</CardHeader>
         <CardBody className="flex flex-col gap-2">
-          <div className="max-h-64 overflow-y-auto">
-            {messages.map(({ type, content }, index) => (
-              <div key={index} className="">
-                {type}: {content}
-                {index < messages.length - 1 && <Divider className="my-2" />}
-              </div>
-            ))}
+          {/* https://code.hnldesign.nl/scrolltobottom/ */}
+          <div className="flex h-64 flex-col-reverse overflow-y-auto">
+            {messages
+              .slice() // clone since reverse will mutate
+              .reverse()
+              .map(({ type, content }, index) => (
+                <div key={index} className="">
+                  {type}: {content}
+                  {/* {index !== 0 && <Divider className="my-2" />} */}
+                  <Divider className="my-2" />
+                </div>
+              ))}
           </div>
           <Form method="POST" className="flex flex-col gap-2">
             <Textarea
