@@ -4,6 +4,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Divider,
   Textarea,
 } from "@nextui-org/react";
 import {
@@ -118,6 +119,7 @@ export default function Route() {
             {messages.map(({ type, content }, index) => (
               <div key={index} className="">
                 {type}: {content}
+                {index < messages.length - 1 && <Divider className="my-2" />}
               </div>
             ))}
           </div>
