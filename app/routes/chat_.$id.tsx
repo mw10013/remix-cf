@@ -118,8 +118,12 @@ export default function Route() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (e.target instanceof HTMLTextAreaElement) {
+                  if (
+                    e.target instanceof HTMLTextAreaElement &&
+                    e.target.value.trim().length > 0
+                  ) {
                     submit(e.target.form);
+                    e.target.value = "";
                   }
                 }
               }}
