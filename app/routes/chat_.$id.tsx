@@ -18,6 +18,7 @@ import { getTableConfig } from "drizzle-orm/sqlite-core";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
+import { BaseMessage, MessageType } from "langchain/schema";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { CloudflareD1MessageHistory } from "langchain/stores/message/cloudflare_d1";
@@ -50,12 +51,15 @@ async function assertValidChat({
 }
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { chat, memory } = await assertValidChat({ params, context });
+  const { memory } = await assertValidChat({ params, context });
   const memoryVariables = await memory.loadMemoryVariables({});
+  const history = memoryVariables.history as BaseMessage[];
+  const messages: { type: MessageType; content: string }[] = history.map(
+    (m) => ({ type: m._getType(), content: m.content }),
+  );
 
   return {
-    memoryVariables,
-    chat,
+    messages,
   };
 }
 
@@ -103,13 +107,20 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 }
 
 export default function Route() {
-  const data = useLoaderData<typeof loader>();
+  const { messages } = useLoaderData<typeof loader>();
   const submit = useSubmit();
   return (
     <div className="flex flex-col gap-2">
       <Card className="mx-auto max-w-2xl">
         <CardHeader>Conversation</CardHeader>
-        <CardBody>
+        <CardBody className="flex flex-col gap-2">
+          <div className="max-h-64 overflow-y-auto">
+            {messages.map(({ type, content }, index) => (
+              <div key={index} className="">
+                {type}: {content}
+              </div>
+            ))}
+          </div>
           <Form method="POST" className="flex flex-col gap-2">
             <Textarea
               name="input"
@@ -134,7 +145,6 @@ export default function Route() {
           </Form>
         </CardBody>
       </Card>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
 }
