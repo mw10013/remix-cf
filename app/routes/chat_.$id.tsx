@@ -112,7 +112,7 @@ export default function Route() {
   const submit = useSubmit();
   return (
     <div className="flex flex-col gap-2">
-      <Card className="mx-auto max-w-2xl">
+      <Card className="mx-auto w-full max-w-2xl">
         <CardHeader>Conversation</CardHeader>
         <CardBody className="flex flex-col gap-2">
           {/* https://code.hnldesign.nl/scrolltobottom/ */}
