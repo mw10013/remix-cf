@@ -15,6 +15,7 @@ import { Form, useLoaderData, useSubmit } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { getTableConfig } from "drizzle-orm/sqlite-core";
+import { initializeAgentExecutorWithOptions } from "langchain/agents";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
@@ -22,6 +23,8 @@ import { BaseMessage, MessageType } from "langchain/schema";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { CloudflareD1MessageHistory } from "langchain/stores/message/cloudflare_d1";
+import { SerpAPI } from "langchain/tools";
+import { Calculator } from "langchain/tools/calculator";
 import invariant from "tiny-invariant";
 import { AChatMessages, AChats } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
@@ -68,39 +71,52 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const input = formData.get("input");
   invariant(typeof input === "string" && input.length > 0, "input is invalid");
+  const tools = [new Calculator(), new SerpAPI(env.SERPAPI_API_KEY)];
   const model = new ChatOpenAI({
-    modelName: "gpt-3.5-turbo",
+    // modelName: "gpt-3.5-turbo",
+    modelName: "gpt-4-0613",
 
     openAIApiKey: env.OPENAI_API_KEY,
     temperature: 0.8,
   });
-  const prompt = ChatPromptTemplate.fromMessages([
-    ["system", "You are a helpful chatbot"],
-    new MessagesPlaceholder("history"),
-    ["human", "{input}"],
-  ]);
 
-  const chain = RunnableSequence.from<{ input: string }, string>([
-    {
-      input: (initialInput) => initialInput.input,
-      memory: () => memory.loadMemoryVariables({}),
-    },
-    {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-      input: (previousOutput) => previousOutput.input,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-      history: (previousOutput) => previousOutput.memory.history,
-    },
-    prompt,
-    model,
-    new StringOutputParser(),
-  ]);
-
-  const chainInput = { input };
-  const result = await chain.invoke(chainInput);
-  await memory.saveContext(chainInput, {
-    output: result,
+  const executor = await initializeAgentExecutorWithOptions(tools, model, {
+    agentType: "openai-functions",
+    verbose: true,
+    // memory,
   });
+
+  // const result = await executor.run("What is the weather in New York?");
+  const result = await executor.run(input);
+  console.log(result);
+
+  // const prompt = ChatPromptTemplate.fromMessages([
+  //   ["system", "You are a helpful chatbot"],
+  //   new MessagesPlaceholder("history"),
+  //   ["human", "{input}"],
+  // ]);
+
+  // const chain = RunnableSequence.from<{ input: string }, string>([
+  //   {
+  //     input: (initialInput) => initialInput.input,
+  //     memory: () => memory.loadMemoryVariables({}),
+  //   },
+  //   {
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+  //     input: (previousOutput) => previousOutput.input,
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+  //     history: (previousOutput) => previousOutput.memory.history,
+  //   },
+  //   prompt,
+  //   model,
+  //   new StringOutputParser(),
+  // ]);
+
+  // const chainInput = { input };
+  // const result = await chain.invoke(chainInput);
+  // await memory.saveContext(chainInput, {
+  //   output: result,
+  // });
 
   // Let revalidation handle data updates.
   return null;
