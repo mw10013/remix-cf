@@ -46,6 +46,21 @@ const executor = await initializeAgentExecutorWithOptions(tools, llm, {
 // new StringOutputParser(),
 // ]);
 
+const chain = RunnableSequence.from<{ input: string }, { output: string }>([
+  {
+    input: (initialInput) => initialInput.input,
+    memory: () => memory.loadMemoryVariables({}),
+  },
+  {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+    input: (previousOutput) => previousOutput.input,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+    history: (previousOutput) => previousOutput.memory.history,
+  },
+  // prompt,
+  executor,
+]);
+
 const stdio = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -56,13 +71,12 @@ while (true) {
   if (input.toLowerCase() === "quit" || input.toLowerCase() === "exit") {
     break;
   } else if (input.length) {
-    const output = await executor.invoke({ input });
-    // const output = await executor.run(input);
-    // const chainInput = { input };
-    // const output = await chain.invoke(chainInput);
-    // await memory.saveContext(chainInput, {
-    //   output,
-    // });
+    // const output = await llm.invoke(input); // AIMessage
+    // const output = await llm.pipe(new StringOutputParser()).invoke(input); // string
+    // const output = await executor.invoke({ input }); // { output }
+    const chainInput = { input };
+    const output = await chain.invoke(chainInput);
+    await memory.saveContext(chainInput, output);
     console.log(`${typeof output}:`, output);
   }
 }
