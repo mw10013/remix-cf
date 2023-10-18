@@ -36,11 +36,11 @@
     "jose": "^4.14.6",
     "langchain": "^0.0.166",
     "lucide-react": "^0.287.0",
-    "openai": "^4.12.1",
+    "openai": "^4.12.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tiny-invariant": "^1.3.1",
-    "zod": "^3.22.2",
+    "zod": "^3.22.4",
     "zod-to-json-schema": "^3.21.4"
   },
   "devDependencies": {
