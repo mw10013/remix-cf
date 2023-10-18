@@ -1,14 +1,7 @@
-import * as path from "path";
-import { fileURLToPath } from "url";
-import * as dotenv from "dotenv";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { HumanMessage } from "langchain/schema";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, "..", ".dev.vars") });
 
 const extractionFunctionZodSchema = z.object({
   tone: z

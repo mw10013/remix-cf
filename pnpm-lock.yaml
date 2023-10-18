@@ -94,9 +94,6 @@ devDependencies:
   better-sqlite3:
     specifier: ^9.0.0
     version: 9.0.0
-  dotenv:
-    specifier: ^16.3.1
-    version: 16.3.1
   drizzle-kit:
     specifier: ^0.19.13
     version: 0.19.13
@@ -125,8 +122,8 @@ devDependencies:
     specifier: ^3.3.3
     version: 3.3.3
   tsx:
-    specifier: ^3.12.10
-    version: 3.12.10
+    specifier: ^3.14.0
+    version: 3.14.0
   typescript:
     specifier: ^5.2.2
     version: 5.2.2
@@ -603,13 +600,6 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
-
-  /@esbuild-kit/cjs-loader@2.4.4:
-    resolution: {integrity: sha512-NfsJX4PdzhwSkfJukczyUiZGc7zNNWZcEAyqeISpDnn0PTfzMJR1aR8xAIPskBejIxBJbIgCCMzbaYa9SXepIg==}
-    dependencies:
-      '@esbuild-kit/core-utils': 3.3.2
-      get-tsconfig: 4.7.0
-    dev: true
 
   /@esbuild-kit/core-utils@3.3.2:
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
@@ -5928,6 +5918,12 @@ packages:
       resolve-pkg-maps: 1.0.0
     dev: true
 
+  /get-tsconfig@4.7.2:
+    resolution: {integrity: sha512-wuMsz4leaj5hbGgg4IvDU0bqJagpftG5l5cXIAvo8uZrqn0NJqwtfupTN00VnkQJPcIRrxYrm1Ue24btpCha2A==}
+    dependencies:
+      resolve-pkg-maps: 1.0.0
+    dev: true
+
   /github-from-package@0.0.0:
     resolution: {integrity: sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==}
 
@@ -9564,13 +9560,13 @@ packages:
   /tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  /tsx@3.12.10:
-    resolution: {integrity: sha512-2+46h4xvUt1aLDNvk5YBT8Uzw+b7BolGbn7iSMucYqCXZiDc+1IMghLVdw8kKjING32JFOeO+Am9posvjkeclA==}
+  /tsx@3.14.0:
+    resolution: {integrity: sha512-xHtFaKtHxM9LOklMmJdI3BEnQq/D5F73Of2E1GDrITi9sgoVkvIsrQUTY1G8FlmGtA+awCI4EBlTRRYxkL2sRg==}
     hasBin: true
     dependencies:
-      '@esbuild-kit/cjs-loader': 2.4.4
-      '@esbuild-kit/core-utils': 3.3.2
-      '@esbuild-kit/esm-loader': 2.6.5
+      esbuild: 0.18.20
+      get-tsconfig: 4.7.2
+      source-map-support: 0.5.21
     optionalDependencies:
       fsevents: 2.3.3
     dev: true

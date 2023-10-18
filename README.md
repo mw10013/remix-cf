@@ -45,7 +45,7 @@ pnpm wrangler d1 migrations apply rcf_db --local
 ## Scripts
 
 ```
-pnpm tsx scripts/sb.ts
+pnpm tsx --env-file=.dev.vars scripts/chat.ts
 ```
 
 ## Drizzle

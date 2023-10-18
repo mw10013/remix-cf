@@ -1,15 +1,8 @@
-import * as path from "path";
-import { fileURLToPath } from "url";
-import * as dotenv from "dotenv";
 import { OpenAI } from "langchain/llms/openai";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { PromptTemplate } from "langchain/prompts";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { z } from "zod";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, "..", ".dev.vars") });
 
 const parser = StructuredOutputParser.fromZodSchema(
   z.object({
