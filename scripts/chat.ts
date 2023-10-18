@@ -5,7 +5,7 @@ import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import { RunnableSequence } from "langchain/schema/runnable";
 
-console.log("chat environment:", process.env.ENVIRONMENT);
+console.log("chat");
 
 const model = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
@@ -42,7 +42,7 @@ const stdio = readline.createInterface({
 });
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
 while (true) {
-  const input = await stdio.question("☕> ");
+  const input = await stdio.question("😀> ");
   if (input.toLowerCase() === "quit" || input.toLowerCase() === "exit") {
     break;
   } else if (input.length) {
