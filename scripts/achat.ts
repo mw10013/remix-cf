@@ -6,7 +6,7 @@ import { RunnableSequence } from "langchain/schema/runnable";
 import { SerpAPI } from "langchain/tools";
 import { Calculator } from "langchain/tools/calculator";
 
-console.log("achat environment");
+console.log("achat");
 
 const tools = [new Calculator(), new SerpAPI()];
 const llm = new ChatOpenAI({
@@ -21,33 +21,7 @@ const executor = await initializeAgentExecutorWithOptions(tools, llm, {
   verbose: true,
 });
 
-// const chain = RunnableSequence.from<{ input: string }, string>([
-// {
-//   input: (initialInput) => initialInput.input,
-//   memory: () => memory.loadMemoryVariables({}),
-// },
-// {
-//   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-//   input: (previousOutput) => previousOutput.input,
-//   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-//   history: (previousOutput) => previousOutput.memory.history,
-// },
-// prompt,
-// model
-// new StringOutputParser(),
-// ]);
-
 const chain = RunnableSequence.from<{ input: string }, { output: string }>([
-  // {
-  //   input: (initialInput) => initialInput.input,
-  //   memory: () => memory.loadMemoryVariables({}),
-  // },
-  // {
-  //   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-  //   input: (previousOutput) => previousOutput.input,
-  //   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-  //   history: (previousOutput) => previousOutput.memory.history,
-  // },
   {
     input: (initialInput) => initialInput.input,
     history: () => memory.loadMemoryVariables({}).history,
@@ -65,9 +39,6 @@ while (true) {
   if (input.toLowerCase() === "quit" || input.toLowerCase() === "exit") {
     break;
   } else if (input.length) {
-    // const output = await llm.invoke(input); // AIMessage
-    // const output = await llm.pipe(new StringOutputParser()).invoke(input); // string
-    // const output = await executor.invoke({ input }); // { output }
     const chainInput = { input };
     const output = await chain.invoke(chainInput);
     await memory.saveContext(chainInput, output);
