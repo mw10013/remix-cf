@@ -3,12 +3,21 @@ import { initializeAgentExecutorWithOptions } from "langchain/agents";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { RunnableSequence } from "langchain/schema/runnable";
-import { SerpAPI } from "langchain/tools";
+import { DynamicTool, SerpAPI } from "langchain/tools";
 import { Calculator } from "langchain/tools/calculator";
 
 console.log("achat");
 
-const tools = [new Calculator(), new SerpAPI()];
+const tools = [
+  new Calculator(),
+  new SerpAPI(),
+  new DynamicTool({
+    name: "FOO",
+    description:
+      "call this to get the value of foo. input should be an empty string.",
+    func: async () => Promise.resolve("baz"),
+  }),
+];
 const llm = new ChatOpenAI({
   modelName: "gpt-4-0613",
   temperature: 0.8,
