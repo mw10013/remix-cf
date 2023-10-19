@@ -21,10 +21,12 @@ const executor = await initializeAgentExecutorWithOptions(tools, llm, {
   verbose: true,
 });
 
+// @ts-expect-error: not sure how to type this properly
 const chain = RunnableSequence.from<{ input: string }, { output: string }>([
   {
     input: (initialInput) => initialInput.input,
-    history: () => memory.loadMemoryVariables({}).history,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    history: async () => (await memory.loadMemoryVariables({})).history,
   },
   executor,
 ]);
