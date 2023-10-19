@@ -30,6 +30,22 @@ const executor = await initializeAgentExecutorWithOptions(tools, llm, {
   verbose: true,
 });
 
+const promptChain = RunnableSequence.from<{ input: string }>([
+  {
+    input: (initialInput) => initialInput.input,
+    memory: () => memory.loadMemoryVariables({}),
+  },
+  {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+    input: (previousOutput) => previousOutput.input,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+    history: (previousOutput) => previousOutput.memory.history,
+  },
+  prompt,
+]);
+const promptResult = await promptChain.invoke({ input: "Hello prompt" });
+console.log("promptResult:", promptResult);
+
 // const chain = RunnableSequence.from<{ input: string }, string>([
 // {
 //   input: (initialInput) => initialInput.input,
