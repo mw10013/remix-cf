@@ -99,11 +99,6 @@ const signedAssertion = await getSignedAssertion({
   kid: process.env.REDOX_API_PUBLIC_KID,
   aud: AUD,
 });
-const jwtAccessToken = await requestJwtAccessToken(
-  signedAssertion,
-  process.env.REDOX_API_SCOPE,
-);
-console.log("jwtAccessToken:", jwtAccessToken);
 
 const tools = [
   new DynamicTool({
@@ -128,11 +123,46 @@ const tools = [
           );
         case "Dr Jung":
           return Promise.resolve(
-            JSON.stringify({ patients: ["Jack", "Jill", "June"] }),
+            JSON.stringify({
+              patients: ["Jack", "Jill", "June", "Keva Green"],
+            }),
           );
         default:
           return Promise.resolve(JSON.stringify({ error: "Unknown doctor" }));
       }
+    },
+  }),
+  new DynamicTool({
+    name: "getKevaGreenDetails",
+    description: "Get Keva Green's details",
+    func: async () => {
+      invariant(
+        typeof process.env.REDOX_API_SCOPE === "string",
+        "Invalid REDOX_API_SCOPE",
+      );
+      const jwtAccessToken = await requestJwtAccessToken(
+        signedAssertion,
+        process.env.REDOX_API_SCOPE,
+      );
+      console.log("jwtAccessToken:", jwtAccessToken);
+
+      const response = await fetch(
+        "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/Patient/_search",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${jwtAccessToken.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            given: "Keva",
+            family: "Green",
+            birthdate: "1995-08-26",
+          }),
+        },
+      );
+      await assertResponseOk(response);
+      return response.text();
     },
   }),
 ];
