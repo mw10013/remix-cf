@@ -3,19 +3,40 @@ import { initializeAgentExecutorWithOptions } from "langchain/agents";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
 import { RunnableSequence } from "langchain/schema/runnable";
-import { DynamicTool, SerpAPI } from "langchain/tools";
-import { Calculator } from "langchain/tools/calculator";
+import { DynamicStructuredTool, DynamicTool } from "langchain/tools";
+import { z } from "zod";
 
 console.log("achat");
 
 const tools = [
-  new Calculator(),
-  new SerpAPI(),
   new DynamicTool({
-    name: "FOO",
-    description:
-      "call this to get the value of foo. input should be an empty string.",
-    func: async () => Promise.resolve("baz"),
+    name: "getDoctors",
+    description: "Get list of doctors",
+    func: async () =>
+      Promise.resolve(JSON.stringify({ doctors: ["Dr Bob", "Dr Jung"] })),
+  }),
+  new DynamicStructuredTool({
+    name: "getPatientsForDoctor",
+    description: "Get list of patients for a doctor",
+    schema: z
+      .object({
+        doctor: z.string().min(1).describe("Name of doctor"),
+      })
+      .describe("The JSON for doctor"),
+    func: async ({ doctor }) => {
+      switch (doctor) {
+        case "Dr Bob":
+          return Promise.resolve(
+            JSON.stringify({ patients: ["Bucky", "Bobby", "Bobby Sue"] }),
+          );
+        case "Dr Jung":
+          return Promise.resolve(
+            JSON.stringify({ patients: ["Jack", "Jill", "June"] }),
+          );
+        default:
+          return Promise.resolve(JSON.stringify({ error: "Unknown doctor" }));
+      }
+    },
   }),
 ];
 const llm = new ChatOpenAI({
