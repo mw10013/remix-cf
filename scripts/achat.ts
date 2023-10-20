@@ -49,6 +49,10 @@ const memory = new BufferMemory({
 const executor = await initializeAgentExecutorWithOptions(tools, llm, {
   agentType: "openai-functions",
   verbose: true,
+  returnIntermediateSteps: true,
+  maxIterations: 5,
+  handleParsingErrors:
+    "Try again, checking step-by-step that the arguments you supply exactly match the parameter types of the function",
 });
 
 // @ts-expect-error: not sure how to type this properly
@@ -72,8 +76,8 @@ while (true) {
     break;
   } else if (input.length) {
     const chainInput = { input };
-    const output = await chain.invoke(chainInput);
-    await memory.saveContext(chainInput, output);
+    const { output } = await chain.invoke(chainInput);
+    await memory.saveContext(chainInput, { output });
     console.log(`🦫 ${typeof output}>`, output);
   }
 }
