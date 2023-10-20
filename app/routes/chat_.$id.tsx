@@ -16,16 +16,93 @@ import { Form, useLoaderData, useSubmit } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { getTableConfig } from "drizzle-orm/sqlite-core";
+import * as jose from "jose";
+import { initializeAgentExecutorWithOptions } from "langchain/agents";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { BufferMemory } from "langchain/memory";
-import { ChatPromptTemplate, MessagesPlaceholder } from "langchain/prompts";
 import { BaseMessage, MessageType } from "langchain/schema";
-import { StringOutputParser } from "langchain/schema/output_parser";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { CloudflareD1MessageHistory } from "langchain/stores/message/cloudflare_d1";
+import { DynamicStructuredTool, DynamicTool } from "langchain/tools";
 import invariant from "tiny-invariant";
+import { z } from "zod";
 import { ChatMessages, Chats } from "~/lib/db/schema";
 import { assertCloudflareEnv } from "~/types/cloudflareEnv";
+
+const AUD = "https://api.redoxengine.com/v2/auth/token";
+
+async function assertResponseOk(res: Response) {
+  if (!res.ok) {
+    const error = new Error(
+      `${res.status} ${res.statusText} ${await res.text()}`,
+    );
+    throw error;
+  }
+}
+
+async function requestJwtAccessToken(signedAssertion: string, scope: string) {
+  const requestBody = new URLSearchParams();
+  requestBody.append("grant_type", "client_credentials");
+  requestBody.append(
+    "client_assertion_type",
+    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+  );
+  requestBody.append("client_assertion", signedAssertion);
+  requestBody.append("scope", scope);
+
+  const response = await fetch("https://api.redoxengine.com/v2/auth/token", {
+    method: "POST",
+    body: requestBody,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  });
+  await assertResponseOk(response);
+  return await response.json<{
+    access_token: string;
+    scope: string;
+    token_type: string;
+    expires_in: number;
+  }>();
+}
+
+async function getSignedAssertion({
+  privateKeyJwk,
+  clientId,
+  scope,
+  kid,
+  aud,
+}: {
+  privateKeyJwk: jose.JWK;
+  clientId: string;
+  scope: string;
+  kid: string;
+  aud: string;
+}) {
+  const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
+  const payload = {
+    scope,
+  };
+
+  const randomBytes = new Uint8Array(8);
+  crypto.getRandomValues(randomBytes);
+  const signedAssertion = await new jose.SignJWT(payload)
+    .setProtectedHeader({
+      alg: "RS384",
+      kid,
+    })
+    .setAudience(aud)
+    .setIssuer(clientId)
+    .setSubject(clientId)
+    .setIssuedAt(Math.floor(new Date().getTime() / 1000)) // Current timestamp in seconds (undefined is valid)
+    .setJti(
+      Array.from(randomBytes) // Array.from() so that map returns string whereas Uint8Array.map returns number.
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join(""),
+    ) // a random string to prevent replay attacks
+    .sign(privateKey);
+  return signedAssertion;
+}
 
 async function assertValidChat({
   params,
@@ -69,42 +146,103 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const input = formData.get("input");
   invariant(typeof input === "string" && input.length > 0, "input is invalid");
-  const model = new ChatOpenAI({
-    modelName: "gpt-3.5-turbo",
+  const tools = [
+    new DynamicTool({
+      name: "getDoctors",
+      description: "Get list of doctors",
+      func: async () =>
+        Promise.resolve(JSON.stringify({ doctors: ["Dr Bob", "Dr Jung"] })),
+    }),
+    new DynamicStructuredTool({
+      name: "getPatientsForDoctor",
+      description: "Get list of patients for a doctor",
+      schema: z
+        .object({
+          doctor: z.string().min(1).describe("Name of doctor"),
+        })
+        .describe("The JSON for doctor"),
+      func: async ({ doctor }) => {
+        switch (doctor) {
+          case "Dr Bob":
+            return Promise.resolve(
+              JSON.stringify({ patients: ["Bucky", "Bobby", "Bobby Sue"] }),
+            );
+          case "Dr Jung":
+            return Promise.resolve(
+              JSON.stringify({
+                patients: ["Jack", "Jill", "June", "Keva Green"],
+              }),
+            );
+          default:
+            return Promise.resolve(JSON.stringify({ error: "Unknown doctor" }));
+        }
+      },
+    }),
+    new DynamicTool({
+      name: "getKevaGreenDetails",
+      description: "Get Keva Green's details",
+      func: async () => {
+        const signedAssertion = await getSignedAssertion({
+          privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
+          clientId: env.REDOX_API_CLIENT_ID,
+          scope: env.REDOX_API_SCOPE,
+          kid: env.REDOX_API_PUBLIC_KID,
+          aud: AUD,
+        });
+        const jwtAccessToken = await requestJwtAccessToken(
+          signedAssertion,
+          env.REDOX_API_SCOPE,
+        );
 
+        const response = await fetch(
+          "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/Patient/_search",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${jwtAccessToken.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              given: "Keva",
+              family: "Green",
+              birthdate: "1995-08-26",
+            }),
+          },
+        );
+        await assertResponseOk(response);
+        return response.text();
+      },
+    }),
+  ];
+
+  const llm = new ChatOpenAI({
+    modelName: "gpt-4-0613",
     openAIApiKey: env.OPENAI_API_KEY,
     temperature: 0.8,
   });
-  const prompt = ChatPromptTemplate.fromMessages([
-    ["system", "You are a helpful chatbot"],
-    new MessagesPlaceholder("history"),
-    ["human", "{input}"],
-  ]);
+  const executor = await initializeAgentExecutorWithOptions(tools, llm, {
+    agentType: "openai-functions",
+    verbose: true,
+    returnIntermediateSteps: true,
+    maxIterations: 5,
+    handleParsingErrors:
+      "Try again, checking step-by-step that the arguments you supply exactly match the parameter types of the function",
+  });
 
-  const chain = RunnableSequence.from<{ input: string }, string>([
+  // @ts-expect-error: not sure how to type this properly
+  const chain = RunnableSequence.from<{ input: string }, { output: string }>([
     {
       input: (initialInput) => initialInput.input,
-      memory: () => memory.loadMemoryVariables({}),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      history: async () => (await memory.loadMemoryVariables({})).history,
     },
-    {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-      input: (previousOutput) => previousOutput.input,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-      history: (previousOutput) => previousOutput.memory.history,
-    },
-    prompt,
-    model,
-    new StringOutputParser(),
+    executor,
   ]);
 
   const chainInput = { input };
-  const result = await chain.invoke(chainInput);
-  await memory.saveContext(chainInput, {
-    output: result,
-  });
-
-  // Let revalidation handle data updates.
-  return null;
+  const { output } = await chain.invoke(chainInput);
+  await memory.saveContext(chainInput, { output });
+  return null; // Let revalidation handle data updates.
 }
 
 export default function Route() {
