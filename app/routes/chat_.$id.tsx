@@ -213,6 +213,38 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         return response.text();
       },
     }),
+    new DynamicTool({
+      name: "getPatientDocumentList",
+      description: "Get the list of documents for a patient",
+      func: async () => {
+        const signedAssertion = await getSignedAssertion({
+          privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
+          clientId: env.REDOX_API_CLIENT_ID,
+          scope: env.REDOX_API_SCOPE,
+          kid: env.REDOX_API_PUBLIC_KID,
+          aud: AUD,
+        });
+        const jwtAccessToken = await requestJwtAccessToken(
+          signedAssertion,
+          env.REDOX_API_SCOPE,
+        );
+        const response = await fetch(
+          "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/Patient/_search",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${jwtAccessToken.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              patient: "81c2f5eb-f99f-40c4-b504-59483e6148d7",
+            }),
+          },
+        );
+        await assertResponseOk(response);
+        return response.text();
+      },
+    }),
   ];
 
   const llm = new ChatOpenAI({
