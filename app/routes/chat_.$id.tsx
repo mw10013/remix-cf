@@ -261,8 +261,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       "Try again, checking step-by-step that the arguments you supply exactly match the parameter types of the function",
   });
 
-  // @ts-expect-error: not sure how to type this properly
-  const chain = RunnableSequence.from<{ input: string }, { output: string }>([
+  const chain = RunnableSequence.from<
+    { input: string },
+    { output: string; intermediateSteps?: unknown[] }
+    // @ts-expect-error: not sure how to type this properly
+  >([
     {
       input: (initialInput) => initialInput.input,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -272,8 +275,16 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   ]);
 
   const chainInput = { input };
-  const { output } = await chain.invoke(chainInput);
-  await memory.saveContext(chainInput, { output });
+  const { output, intermediateSteps } = await chain.invoke(chainInput);
+  await memory.saveContext(chainInput, {
+    output: intermediateSteps
+      ? `Intermediate Steps: ${JSON.stringify(
+          intermediateSteps,
+          null,
+          2,
+        )}\n\n${output}`
+      : output,
+  });
   return null; // Let revalidation handle data updates.
 }
 
