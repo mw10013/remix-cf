@@ -61,7 +61,40 @@ while (true) {
     const completionMessage = completion.choices[0].message;
     console.log("completionMessage:", completionMessage);
     messages.push(completionMessage);
-    console.log(`🦫 >`, completionMessage.content);
+
+    if (completionMessage.function_call) {
+      const functionName = completionMessage.function_call.name;
+      console.log(
+        `🦫 >`,
+        `${functionName}: ${completionMessage.function_call.arguments}`,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const functionArguments = JSON.parse(
+        completionMessage.function_call.arguments,
+      );
+      const functionOutput = getCurrentWeather(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        functionArguments.location,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        functionArguments.unit,
+      );
+      messages.push({
+        role: "function",
+        name: functionName,
+        content: functionOutput,
+      });
+      const functionCompletion = await openai.chat.completions.create({
+        model: "gpt-4-0613",
+        temperature: 0,
+        messages: messages,
+      });
+      const functionCompletionMessage = functionCompletion.choices[0].message;
+      console.log("functionCompletionMessage:", functionCompletionMessage);
+      messages.push(functionCompletionMessage);
+      console.log(`🦫 >`, functionCompletionMessage.content);
+    } else {
+      console.log(`🦫 >`, completionMessage.content);
+    }
   }
 }
 stdio.close();
