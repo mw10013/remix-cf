@@ -4,6 +4,34 @@ import { ChatCompletionMessageParam } from "openai/resources/chat/index.mjs";
 
 console.log("bchat");
 
+function getCurrentWeather(location: string, unit = "fahrenheit") {
+  const weatherInfo = {
+    location: location,
+    temperature: "72",
+    unit: unit,
+    forecast: ["sunny", "windy"],
+  };
+  return JSON.stringify(weatherInfo);
+}
+
+const functions = [
+  {
+    name: "get_current_weather",
+    description: "Get the current weather in a given location",
+    parameters: {
+      type: "object",
+      properties: {
+        location: {
+          type: "string",
+          description: "The city and state, e.g. San Francisco, CA",
+        },
+        unit: { type: "string", enum: ["celsius", "fahrenheit"] },
+      },
+      required: ["location"],
+    },
+  },
+];
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -24,12 +52,16 @@ while (true) {
   } else if (input.length) {
     messages.push({ role: "user", content: input });
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-0613",
       temperature: 0,
       messages,
+      functions,
     });
-    messages.push(completion.choices[0].message);
-    console.log(`🦫 >`, completion.choices[0].message.content);
+    // console.log("completion:", completion);
+    const completionMessage = completion.choices[0].message;
+    console.log("completionMessage:", completionMessage);
+    messages.push(completionMessage);
+    console.log(`🦫 >`, completionMessage.content);
   }
 }
 stdio.close();
