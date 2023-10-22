@@ -1,36 +1,43 @@
 import readline from "readline/promises";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/chat/index.mjs";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 console.log("bchat");
 
-function getCurrentWeather(location: string, unit = "fahrenheit") {
-  const weatherInfo = {
-    location: location,
-    temperature: "72",
-    unit: unit,
-    forecast: ["sunny", "windy"],
-  };
-  return JSON.stringify(weatherInfo);
-}
+type FunctionDescription<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T extends z.ZodObject<any, any, any, any> = z.ZodObject<any, any, any, any>,
+> = {
+  name: string;
+  description: string;
+  schema: T;
+  func: (input: z.infer<T>) => Promise<string>;
+};
 
-const functions = [
+const functionDescriptions: FunctionDescription[] = [
   {
-    name: "get_current_weather",
+    name: "getCurrentWeather",
     description: "Get the current weather in a given location",
-    parameters: {
-      type: "object",
-      properties: {
-        location: {
-          type: "string",
-          description: "The city and state, e.g. San Francisco, CA",
-        },
-        unit: { type: "string", enum: ["celsius", "fahrenheit"] },
-      },
-      required: ["location"],
+    schema: z.object({
+      location: z
+        .string()
+        .describe("The city and state, e.g. San Francisco, CA"),
+      unit: z.enum(["celsius", "fahrenheit"]).optional(),
+    }),
+    func: async ({ location, unit = "fahrenheit" }) => {
+      const weatherInfo = {
+        location,
+        temperature: "72",
+        unit,
+        forecast: ["sunny", "windy"],
+      };
+      return Promise.resolve(JSON.stringify(weatherInfo));
     },
   },
 ];
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -55,7 +62,13 @@ while (true) {
       model: "gpt-4-0613",
       temperature: 0,
       messages,
-      functions,
+      functions: functionDescriptions.map(({ name, description, schema }) => {
+        return {
+          name,
+          description,
+          parameters: zodToJsonSchema(schema),
+        };
+      }),
     });
     // console.log("completion:", completion);
     const completionMessage = completion.choices[0].message;
@@ -72,12 +85,8 @@ while (true) {
       const functionArguments = JSON.parse(
         completionMessage.function_call.arguments,
       );
-      const functionOutput = getCurrentWeather(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        functionArguments.location,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        functionArguments.unit,
-      );
+      const functionOutput =
+        await functionDescriptions[0].func(functionArguments);
       messages.push({
         role: "function",
         name: functionName,
