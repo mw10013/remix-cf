@@ -1,8 +1,6 @@
 import readline from "readline/promises";
 import OpenAI from "openai";
-import {
-  ChatCompletionMessage,
-} from "openai/resources/chat/index.mjs";
+import { ChatCompletionMessageParam } from "openai/resources/chat/index.mjs";
 
 console.log("bchat");
 
@@ -10,8 +8,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// const messages: ChatCompletionMessageParam[] = [
-const messages: ChatCompletionMessage[] = [
+const messages: ChatCompletionMessageParam[] = [
   { role: "system", content: "You are a helpful assistant." },
 ];
 
@@ -27,9 +24,9 @@ while (true) {
   } else if (input.length) {
     messages.push({ role: "user", content: input });
     const completion = await openai.chat.completions.create({
-      messages,
       model: "gpt-3.5-turbo",
       temperature: 0,
+      messages,
     });
     messages.push(completion.choices[0].message);
     console.log(`🦫 >`, completion.choices[0].message.content);
