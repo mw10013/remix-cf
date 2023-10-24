@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "68bff872-a3af-4a1d-a5dc-00280298ed2d",
+  "id": "5a267eb5-395f-4595-8846-9beb927ddfeb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "ChatMessages": {
@@ -14,8 +14,8 @@
           "notNull": true,
           "autoincrement": true
         },
-        "chat_id": {
-          "name": "chat_id",
+        "chatId": {
+          "name": "chatId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -25,7 +25,7 @@
           "name": "message",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
@@ -33,18 +33,18 @@
         "chat_id_index": {
           "name": "chat_id_index",
           "columns": [
-            "chat_id"
+            "chatId"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "ChatMessages_chat_id_Chats_id_fk": {
-          "name": "ChatMessages_chat_id_Chats_id_fk",
+        "ChatMessages_chatId_Chats_id_fk": {
+          "name": "ChatMessages_chatId_Chats_id_fk",
           "tableFrom": "ChatMessages",
           "tableTo": "Chats",
           "columnsFrom": [
-            "chat_id"
+            "chatId"
           ],
           "columnsTo": [
             "id"

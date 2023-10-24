@@ -24,85 +24,125 @@ import { BaseMessage, MessageType } from "langchain/schema";
 import { RunnableSequence } from "langchain/schema/runnable";
 import { CloudflareD1MessageHistory } from "langchain/stores/message/cloudflare_d1";
 import { DynamicStructuredTool, DynamicTool } from "langchain/tools";
+import OpenAI from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 import { ChatMessages, Chats } from "~/lib/db/schema";
-import { assertCloudflareEnv } from "~/types/cloudflareEnv";
+import { assertCloudflareEnv, CloudflareEnv } from "~/types/cloudflareEnv";
 
-const AUD = "https://api.redoxengine.com/v2/auth/token";
+// const AUD = "https://api.redoxengine.com/v2/auth/token";
 
-async function assertResponseOk(res: Response) {
-  if (!res.ok) {
-    const error = new Error(
-      `${res.status} ${res.statusText} ${await res.text()}`,
-    );
-    throw error;
-  }
-}
+// async function assertResponseOk(res: Response) {
+//   if (!res.ok) {
+//     const error = new Error(
+//       `${res.status} ${res.statusText} ${await res.text()}`,
+//     );
+//     throw error;
+//   }
+// }
 
-async function requestJwtAccessToken(signedAssertion: string, scope: string) {
-  const requestBody = new URLSearchParams();
-  requestBody.append("grant_type", "client_credentials");
-  requestBody.append(
-    "client_assertion_type",
-    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-  );
-  requestBody.append("client_assertion", signedAssertion);
-  requestBody.append("scope", scope);
+// async function requestJwtAccessToken(signedAssertion: string, scope: string) {
+//   const requestBody = new URLSearchParams();
+//   requestBody.append("grant_type", "client_credentials");
+//   requestBody.append(
+//     "client_assertion_type",
+//     "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+//   );
+//   requestBody.append("client_assertion", signedAssertion);
+//   requestBody.append("scope", scope);
 
-  const response = await fetch("https://api.redoxengine.com/v2/auth/token", {
-    method: "POST",
-    body: requestBody,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  });
-  await assertResponseOk(response);
-  return await response.json<{
-    access_token: string;
-    scope: string;
-    token_type: string;
-    expires_in: number;
-  }>();
-}
+//   const response = await fetch("https://api.redoxengine.com/v2/auth/token", {
+//     method: "POST",
+//     body: requestBody,
+//     headers: {
+//       "Content-Type": "application/x-www-form-urlencoded",
+//     },
+//   });
+//   await assertResponseOk(response);
+//   return await response.json<{
+//     access_token: string;
+//     scope: string;
+//     token_type: string;
+//     expires_in: number;
+//   }>();
+// }
 
-async function getSignedAssertion({
-  privateKeyJwk,
-  clientId,
-  scope,
-  kid,
-  aud,
+// async function getSignedAssertion({
+//   privateKeyJwk,
+//   clientId,
+//   scope,
+//   kid,
+//   aud,
+// }: {
+//   privateKeyJwk: jose.JWK;
+//   clientId: string;
+//   scope: string;
+//   kid: string;
+//   aud: string;
+// }) {
+//   const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
+//   const payload = {
+//     scope,
+//   };
+
+//   const randomBytes = new Uint8Array(8);
+//   crypto.getRandomValues(randomBytes);
+//   const signedAssertion = await new jose.SignJWT(payload)
+//     .setProtectedHeader({
+//       alg: "RS384",
+//       kid,
+//     })
+//     .setAudience(aud)
+//     .setIssuer(clientId)
+//     .setSubject(clientId)
+//     .setIssuedAt(Math.floor(new Date().getTime() / 1000)) // Current timestamp in seconds (undefined is valid)
+//     .setJti(
+//       Array.from(randomBytes) // Array.from() so that map returns string whereas Uint8Array.map returns number.
+//         .map((byte) => byte.toString(16).padStart(2, "0"))
+//         .join(""),
+//     ) // a random string to prevent replay attacks
+//     .sign(privateKey);
+//   return signedAssertion;
+// }
+
+async function createMessageStore({
+  chatId,
+  db,
 }: {
-  privateKeyJwk: jose.JWK;
-  clientId: string;
-  scope: string;
-  kid: string;
-  aud: string;
+  chatId: number;
+  db: ReturnType<typeof drizzle>;
 }) {
-  const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
-  const payload = {
-    scope,
+  const chatMessages = await db
+    .select()
+    .from(ChatMessages)
+    .where(eq(ChatMessages.chatId, chatId))
+    .orderBy(ChatMessages.id)
+    .all();
+  const messages = chatMessages.map((chatMessage) => chatMessage.message);
+  const messageStore = {
+    messages,
+    async add(message: ChatCompletionMessageParam) {
+      await db.insert(ChatMessages).values({ chatId: chatId, message });
+      messageStore.messages.push(message);
+    },
   };
-
-  const randomBytes = new Uint8Array(8);
-  crypto.getRandomValues(randomBytes);
-  const signedAssertion = await new jose.SignJWT(payload)
-    .setProtectedHeader({
-      alg: "RS384",
-      kid,
-    })
-    .setAudience(aud)
-    .setIssuer(clientId)
-    .setSubject(clientId)
-    .setIssuedAt(Math.floor(new Date().getTime() / 1000)) // Current timestamp in seconds (undefined is valid)
-    .setJti(
-      Array.from(randomBytes) // Array.from() so that map returns string whereas Uint8Array.map returns number.
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join(""),
-    ) // a random string to prevent replay attacks
-    .sign(privateKey);
-  return signedAssertion;
+  console.log({
+    chatId,
+    messagesLength: messages.length,
+    messageStoreMessagesLength: messageStore.messages.length,
+    chatMessagesLength: chatMessages.length,
+  });
+  if (messageStore.messages.length === 0) {
+    await messageStore.add({
+      role: "system",
+      content: "You are a helpful assistant.",
+    });
+  }
+  return messageStore;
 }
+
+type MessageStore = Awaited<ReturnType<typeof createMessageStore>>;
 
 async function assertValidChat({
   params,
@@ -116,175 +156,94 @@ async function assertValidChat({
     .from(Chats)
     .where(eq(Chats.id, Number(params.id)));
   invariant(chat, "invalid chat");
-
-  const memory = new BufferMemory({
-    returnMessages: true,
-    chatHistory: new CloudflareD1MessageHistory({
-      tableName: getTableConfig(ChatMessages).name,
-      sessionId: chat.id.toString(),
-      database: context.env.DB,
-    }),
-  });
-  return { db, chat, memory, env: context.env };
+  const messageStore = await createMessageStore({ chatId: chat.id, db });
+  return { db, chat, messageStore, env: context.env };
 }
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { memory } = await assertValidChat({ params, context });
-  const memoryVariables = await memory.loadMemoryVariables({});
-  const history = memoryVariables.history as BaseMessage[];
-  const messages: { type: MessageType; content: string }[] = history.map(
-    (m) => ({ type: m._getType(), content: m.content }),
-  );
-
+  const { messageStore } = await assertValidChat({ params, context });
   return {
-    messages,
+    messages: messageStore.messages,
   };
 }
 
+async function completeMessages({
+  messageStore,
+  env,
+}: {
+  messageStore: MessageStore;
+  env: CloudflareEnv;
+}) {
+  const openai = new OpenAI({
+    apiKey: env.OPENAI_API_KEY,
+  });
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4-0613",
+    temperature: 0,
+    messages: messageStore.messages,
+    // functions: functionDescriptions.map(({ name, description, schema }) => {
+    //   return {
+    //     name,
+    //     description,
+    //     parameters: zodToJsonSchema(schema),
+    //   };
+    // }),
+  });
+  // console.log("completion:", completion);
+  const completionMessage = completion.choices[0].message;
+  console.log("completionMessage:", completionMessage);
+  await messageStore.add(completionMessage);
+
+  // if (!completionMessage.function_call) {
+  //   return completionMessage.content;
+  // }
+
+  // const functionName = completionMessage.function_call.name;
+  // console.log(
+  //   `🦫 >`,
+  //   `${functionName}: ${completionMessage.function_call.arguments}`,
+  // );
+
+  // const functionDescription = functionDescriptions.find(
+  //   ({ name }) => name === functionName,
+  // );
+  // if (!functionDescription) {
+  //   return `Function named ${functionName} not found`;
+  // }
+
+  // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // const functionArguments = JSON.parse(
+  //   completionMessage.function_call.arguments,
+  // );
+  // const parseResult = functionDescription.schema.safeParse(functionArguments);
+  // if (!parseResult.success) {
+  //   return `Error parsing arguments for function ${functionName}: ${parseResult.error.message}`;
+  // }
+  // const functionOutput = await functionDescription.func(parseResult.data);
+  // messageStore.add({
+  //   role: "function",
+  //   name: functionName,
+  //   content: functionOutput,
+  // });
+  // const functionCompletion = await openai.chat.completions.create({
+  //   model: "gpt-4-0613",
+  //   temperature: 0,
+  //   messages: messageStore.messages,
+  // });
+  // const functionCompletionMessage = functionCompletion.choices[0].message;
+  // console.log("functionCompletionMessage:", functionCompletionMessage);
+  // messageStore.add(functionCompletionMessage);
+  // return functionCompletionMessage.content;
+}
+
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const { memory, env } = await assertValidChat({ params, context });
+  const { messageStore, env } = await assertValidChat({ params, context });
   const formData = await request.formData();
   const input = formData.get("input");
   invariant(typeof input === "string" && input.length > 0, "input is invalid");
-  const tools = [
-    new DynamicTool({
-      name: "getDoctors",
-      description: "Get list of doctors",
-      func: async () =>
-        Promise.resolve(JSON.stringify({ doctors: ["Dr Bob", "Dr Jung"] })),
-    }),
-    new DynamicStructuredTool({
-      name: "getPatientsForDoctor",
-      description: "Get list of patients for a doctor",
-      schema: z
-        .object({
-          doctor: z.string().min(1).describe("Name of doctor"),
-        })
-        .describe("The JSON for doctor"),
-      func: async ({ doctor }) => {
-        switch (doctor) {
-          case "Dr Bob":
-            return Promise.resolve(
-              JSON.stringify({ patients: ["Bucky", "Bobby", "Bobby Sue"] }),
-            );
-          case "Dr Jung":
-            return Promise.resolve(
-              JSON.stringify({
-                patients: ["Jack", "Jill", "June", "Keva Green"],
-              }),
-            );
-          default:
-            return Promise.resolve(JSON.stringify({ error: "Unknown doctor" }));
-        }
-      },
-    }),
-    new DynamicTool({
-      name: "getKevaGreenDetails",
-      description: "Get Keva Green's details",
-      func: async () => {
-        const signedAssertion = await getSignedAssertion({
-          privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
-          clientId: env.REDOX_API_CLIENT_ID,
-          scope: env.REDOX_API_SCOPE,
-          kid: env.REDOX_API_PUBLIC_KID,
-          aud: AUD,
-        });
-        const jwtAccessToken = await requestJwtAccessToken(
-          signedAssertion,
-          env.REDOX_API_SCOPE,
-        );
-
-        const response = await fetch(
-          "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/Patient/_search",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${jwtAccessToken.access_token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              given: "Keva",
-              family: "Green",
-              birthdate: "1995-08-26",
-            }),
-          },
-        );
-        await assertResponseOk(response);
-        return response.text();
-      },
-    }),
-    new DynamicTool({
-      name: "getPatientDocumentList",
-      description: "Get the list of documents for a patient",
-      func: async () => {
-        const signedAssertion = await getSignedAssertion({
-          privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
-          clientId: env.REDOX_API_CLIENT_ID,
-          scope: env.REDOX_API_SCOPE,
-          kid: env.REDOX_API_PUBLIC_KID,
-          aud: AUD,
-        });
-        const jwtAccessToken = await requestJwtAccessToken(
-          signedAssertion,
-          env.REDOX_API_SCOPE,
-        );
-        const response = await fetch(
-          "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/Patient/_search",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${jwtAccessToken.access_token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              patient: "81c2f5eb-f99f-40c4-b504-59483e6148d7",
-            }),
-          },
-        );
-        await assertResponseOk(response);
-        return response.text();
-      },
-    }),
-  ];
-
-  const llm = new ChatOpenAI({
-    modelName: "gpt-4-0613",
-    openAIApiKey: env.OPENAI_API_KEY,
-    temperature: 0.8,
-  });
-  const executor = await initializeAgentExecutorWithOptions(tools, llm, {
-    agentType: "openai-functions",
-    verbose: true,
-    returnIntermediateSteps: true,
-    maxIterations: 5,
-    handleParsingErrors:
-      "Try again, checking step-by-step that the arguments you supply exactly match the parameter types of the function",
-  });
-
-  const chain = RunnableSequence.from<
-    { input: string },
-    { output: string; intermediateSteps?: unknown[] }
-    // @ts-expect-error: not sure how to type this properly
-  >([
-    {
-      input: (initialInput) => initialInput.input,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      history: async () => (await memory.loadMemoryVariables({})).history,
-    },
-    executor,
-  ]);
-
-  const chainInput = { input };
-  const { output, intermediateSteps } = await chain.invoke(chainInput);
-  await memory.saveContext(chainInput, {
-    output: intermediateSteps
-      ? `Intermediate Steps: ${JSON.stringify(
-          intermediateSteps,
-          null,
-          2,
-        )}\n\n${output}`
-      : output,
-  });
+  await messageStore.add({ role: "user", content: input });
+  await completeMessages({ messageStore, env });
   return null; // Let revalidation handle data updates.
 }
 
@@ -301,9 +260,9 @@ export default function Route() {
             {messages
               .slice() // clone since reverse will mutate
               .reverse()
-              .map(({ type, content }, index) => (
+              .map((message, index) => (
                 <div key={index} className="">
-                  {type}: {content}
+                  <pre>{JSON.stringify(message, null, 2)}</pre>
                   {/* {index !== 0 && <Divider className="my-2" />} */}
                   <Divider className="my-2" />
                 </div>

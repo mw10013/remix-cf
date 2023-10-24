@@ -11,16 +11,18 @@ export const ChatMessages = sqliteTable(
   "ChatMessages",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    chat_id: integer("chat_id")
+    chatId: integer("chatId")
       .notNull()
       .references(() => Chats.id, { onDelete: "cascade" }), // https://www.answeroverflow.com/m/1110915016959475743
     message: text("message", {
       mode: "json",
-    }).$type<ChatCompletionMessageParam>(),
+    })
+      .$type<ChatCompletionMessageParam>()
+      .notNull(),
   },
   (table) => {
     return {
-      chat_id_index: index("chat_id_index").on(table.chat_id),
+      chatIdIndex: index("chat_id_index").on(table.chatId),
     };
   },
 );
