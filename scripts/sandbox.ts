@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Database from "better-sqlite3";
 import { BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3";
 import { ChatCompletionMessageParam } from "openai/resources/chat/index.mjs";
@@ -29,7 +27,7 @@ const message: ChatCompletionMessageParam = {
   content: "You are a helpful assistant.",
 };
 
-await db.insert(ChatMessages).values({ chat_id: id, message });
+await db.insert(ChatMessages).values({ chatId: id, message });
 
 const result = await db.select().from(ChatMessages);
 console.log({ result });

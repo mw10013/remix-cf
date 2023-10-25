@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Button,
   Card,
@@ -15,96 +14,141 @@ import {
 import { Form, useLoaderData, useSubmit } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { getTableConfig } from "drizzle-orm/sqlite-core";
 import * as jose from "jose";
-import { initializeAgentExecutorWithOptions } from "langchain/agents";
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { BufferMemory } from "langchain/memory";
-import { BaseMessage, MessageType } from "langchain/schema";
-import { RunnableSequence } from "langchain/schema/runnable";
-import { CloudflareD1MessageHistory } from "langchain/stores/message/cloudflare_d1";
-import { DynamicStructuredTool, DynamicTool } from "langchain/tools";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import invariant from "tiny-invariant";
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import { ChatMessages, Chats } from "~/lib/db/schema";
 import { assertCloudflareEnv, CloudflareEnv } from "~/types/cloudflareEnv";
 
-// const AUD = "https://api.redoxengine.com/v2/auth/token";
+type MessageStore = Awaited<ReturnType<typeof createMessageStore>>;
+type FunctionDescription<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T extends z.ZodObject<any, any, any, any> = z.ZodObject<any, any, any, any>,
+> = {
+  name: string;
+  description: string;
+  schema: T;
+  func: (input: z.infer<T>) => Promise<string>;
+};
 
-// async function assertResponseOk(res: Response) {
-//   if (!res.ok) {
-//     const error = new Error(
-//       `${res.status} ${res.statusText} ${await res.text()}`,
-//     );
-//     throw error;
-//   }
-// }
+async function createRedox(env: CloudflareEnv) {
+  const endpoint =
+    "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/";
+  const aud = "https://api.redoxengine.com/v2/auth/token";
 
-// async function requestJwtAccessToken(signedAssertion: string, scope: string) {
-//   const requestBody = new URLSearchParams();
-//   requestBody.append("grant_type", "client_credentials");
-//   requestBody.append(
-//     "client_assertion_type",
-//     "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-//   );
-//   requestBody.append("client_assertion", signedAssertion);
-//   requestBody.append("scope", scope);
+  const signedAssertion = await getSignedAssertion({
+    privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
+    clientId: env.REDOX_API_CLIENT_ID,
+    scope: env.REDOX_API_SCOPE,
+    kid: env.REDOX_API_PUBLIC_KID,
+    aud,
+  });
 
-//   const response = await fetch("https://api.redoxengine.com/v2/auth/token", {
-//     method: "POST",
-//     body: requestBody,
-//     headers: {
-//       "Content-Type": "application/x-www-form-urlencoded",
-//     },
-//   });
-//   await assertResponseOk(response);
-//   return await response.json<{
-//     access_token: string;
-//     scope: string;
-//     token_type: string;
-//     expires_in: number;
-//   }>();
-// }
+  const redox = {
+    post,
+  };
 
-// async function getSignedAssertion({
-//   privateKeyJwk,
-//   clientId,
-//   scope,
-//   kid,
-//   aud,
-// }: {
-//   privateKeyJwk: jose.JWK;
-//   clientId: string;
-//   scope: string;
-//   kid: string;
-//   aud: string;
-// }) {
-//   const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
-//   const payload = {
-//     scope,
-//   };
+  async function post(api: string, body: unknown) {
+    invariant(
+      typeof env.REDOX_API_SCOPE === "string",
+      "Invalid REDOX_API_SCOPE",
+    );
+    const jwtAccessToken = await requestJwtAccessToken(
+      signedAssertion,
+      env.REDOX_API_SCOPE,
+    );
+    console.log("jwtAccessToken:", jwtAccessToken);
 
-//   const randomBytes = new Uint8Array(8);
-//   crypto.getRandomValues(randomBytes);
-//   const signedAssertion = await new jose.SignJWT(payload)
-//     .setProtectedHeader({
-//       alg: "RS384",
-//       kid,
-//     })
-//     .setAudience(aud)
-//     .setIssuer(clientId)
-//     .setSubject(clientId)
-//     .setIssuedAt(Math.floor(new Date().getTime() / 1000)) // Current timestamp in seconds (undefined is valid)
-//     .setJti(
-//       Array.from(randomBytes) // Array.from() so that map returns string whereas Uint8Array.map returns number.
-//         .map((byte) => byte.toString(16).padStart(2, "0"))
-//         .join(""),
-//     ) // a random string to prevent replay attacks
-//     .sign(privateKey);
-//   return signedAssertion;
-// }
+    const response = await fetch(endpoint + api, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwtAccessToken.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    await assertResponseOk(response);
+    return await response.text();
+  }
+
+  async function assertResponseOk(res: Response) {
+    if (!res.ok) {
+      const error = new Error(
+        `${res.status} ${res.statusText} ${await res.text()}`,
+      );
+      throw error;
+    }
+  }
+
+  async function requestJwtAccessToken(signedAssertion: string, scope: string) {
+    const requestBody = new URLSearchParams();
+    requestBody.append("grant_type", "client_credentials");
+    requestBody.append(
+      "client_assertion_type",
+      "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    );
+    requestBody.append("client_assertion", signedAssertion);
+    requestBody.append("scope", scope);
+
+    const response = await fetch("https://api.redoxengine.com/v2/auth/token", {
+      method: "POST",
+      body: requestBody,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    await assertResponseOk(response);
+    return await response.json<{
+      access_token: string;
+      scope: string;
+      token_type: string;
+      expires_in: number;
+    }>();
+  }
+
+  async function getSignedAssertion({
+    privateKeyJwk,
+    clientId,
+    scope,
+    kid,
+    aud,
+  }: {
+    privateKeyJwk: jose.JWK;
+    clientId: string;
+    scope: string;
+    kid: string;
+    aud: string;
+  }) {
+    const privateKey = await jose.importJWK(privateKeyJwk, "RS384");
+    const payload = {
+      scope,
+    };
+
+    const randomBytes = new Uint8Array(8);
+    crypto.getRandomValues(randomBytes);
+    const signedAssertion = await new jose.SignJWT(payload)
+      .setProtectedHeader({
+        alg: "RS384",
+        kid,
+      })
+      .setAudience(aud)
+      .setIssuer(clientId)
+      .setSubject(clientId)
+      .setIssuedAt(Math.floor(new Date().getTime() / 1000)) // Current timestamp in seconds (undefined is valid)
+      .setJti(
+        Array.from(randomBytes) // Array.from() so that map returns string whereas Uint8Array.map returns number.
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join(""),
+      ) // a random string to prevent replay attacks
+      .sign(privateKey);
+    return signedAssertion;
+  }
+
+  return redox;
+}
 
 async function createMessageStore({
   chatId,
@@ -127,12 +171,6 @@ async function createMessageStore({
       messageStore.messages.push(message);
     },
   };
-  console.log({
-    chatId,
-    messagesLength: messages.length,
-    messageStoreMessagesLength: messageStore.messages.length,
-    chatMessagesLength: chatMessages.length,
-  });
   if (messageStore.messages.length === 0) {
     await messageStore.add({
       role: "system",
@@ -141,8 +179,6 @@ async function createMessageStore({
   }
   return messageStore;
 }
-
-type MessageStore = Awaited<ReturnType<typeof createMessageStore>>;
 
 async function assertValidChat({
   params,
@@ -174,6 +210,43 @@ async function completeMessages({
   messageStore: MessageStore;
   env: CloudflareEnv;
 }) {
+  const redox = await createRedox(env);
+  const functionDescriptions: FunctionDescription[] = [
+    {
+      name: "getCurrentWeather",
+      description: "Get the current weather in a given location",
+      schema: z.object({
+        location: z
+          .string()
+          .describe("The city and state, e.g. San Francisco, CA"),
+        unit: z.enum(["celsius", "fahrenheit"]).optional(),
+      }),
+      func: async ({ location, unit = "fahrenheit" }) => {
+        const weatherInfo = {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          location,
+          temperature: "72",
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          unit,
+          forecast: ["sunny", "windy"],
+        };
+        return Promise.resolve(JSON.stringify(weatherInfo));
+      },
+    },
+    {
+      name: "getKevaGreenDetails",
+      description: "Get Keva Green's details",
+      schema: z.object({}),
+      func: async () => {
+        return redox.post("Patient/_search", {
+          given: "Keva",
+          family: "Green",
+          birthdate: "1995-08-26",
+        });
+      },
+    },
+  ];
+
   const openai = new OpenAI({
     apiKey: env.OPENAI_API_KEY,
   });
@@ -182,59 +255,60 @@ async function completeMessages({
     model: "gpt-4-0613",
     temperature: 0,
     messages: messageStore.messages,
-    // functions: functionDescriptions.map(({ name, description, schema }) => {
-    //   return {
-    //     name,
-    //     description,
-    //     parameters: zodToJsonSchema(schema),
-    //   };
-    // }),
+    functions: functionDescriptions.map(({ name, description, schema }) => {
+      return {
+        name,
+        description,
+        parameters: zodToJsonSchema(schema),
+      };
+    }),
   });
   // console.log("completion:", completion);
   const completionMessage = completion.choices[0].message;
   console.log("completionMessage:", completionMessage);
   await messageStore.add(completionMessage);
 
-  // if (!completionMessage.function_call) {
-  //   return completionMessage.content;
-  // }
+  if (!completionMessage.function_call) {
+    return;
+  }
 
-  // const functionName = completionMessage.function_call.name;
-  // console.log(
-  //   `🦫 >`,
-  //   `${functionName}: ${completionMessage.function_call.arguments}`,
-  // );
+  const functionName = completionMessage.function_call.name;
+  const functionDescription = functionDescriptions.find(
+    ({ name }) => name === functionName,
+  );
+  if (!functionDescription) {
+    await messageStore.add({
+      role: "system",
+      content: `Function ${functionName} not found`,
+    });
+    return;
+  }
 
-  // const functionDescription = functionDescriptions.find(
-  //   ({ name }) => name === functionName,
-  // );
-  // if (!functionDescription) {
-  //   return `Function named ${functionName} not found`;
-  // }
-
-  // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  // const functionArguments = JSON.parse(
-  //   completionMessage.function_call.arguments,
-  // );
-  // const parseResult = functionDescription.schema.safeParse(functionArguments);
-  // if (!parseResult.success) {
-  //   return `Error parsing arguments for function ${functionName}: ${parseResult.error.message}`;
-  // }
-  // const functionOutput = await functionDescription.func(parseResult.data);
-  // messageStore.add({
-  //   role: "function",
-  //   name: functionName,
-  //   content: functionOutput,
-  // });
-  // const functionCompletion = await openai.chat.completions.create({
-  //   model: "gpt-4-0613",
-  //   temperature: 0,
-  //   messages: messageStore.messages,
-  // });
-  // const functionCompletionMessage = functionCompletion.choices[0].message;
-  // console.log("functionCompletionMessage:", functionCompletionMessage);
-  // messageStore.add(functionCompletionMessage);
-  // return functionCompletionMessage.content;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const functionArguments = JSON.parse(
+    completionMessage.function_call.arguments,
+  );
+  const parseResult = functionDescription.schema.safeParse(functionArguments);
+  if (!parseResult.success) {
+    await messageStore.add({
+      role: "system",
+      content: `Error parsing arguments for function ${functionName}: ${parseResult.error.message}`,
+    });
+    return;
+  }
+  const functionOutput = await functionDescription.func(parseResult.data);
+  await messageStore.add({
+    role: "function",
+    name: functionName,
+    content: functionOutput,
+  });
+  const functionCompletion = await openai.chat.completions.create({
+    model: "gpt-4-0613",
+    temperature: 0,
+    messages: messageStore.messages,
+  });
+  const functionCompletionMessage = functionCompletion.choices[0].message;
+  await messageStore.add(functionCompletionMessage);
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
