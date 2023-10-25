@@ -60,7 +60,7 @@ export default function App() {
         <NextUIProvider className="">
           {/* https://github.com/nextui-org/next-app-template/blob/main/app/layout.tsx */}
           <div className="relative flex h-screen flex-col">
-            <main className="container mx-auto max-w-7xl flex-grow px-6 pt-16">
+            <main className="container mx-auto max-w-7xl grow px-6 pt-16">
               <Outlet />
             </main>
             <footer className="flex w-full items-center justify-center py-3">
