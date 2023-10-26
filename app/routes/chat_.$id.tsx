@@ -245,6 +245,21 @@ async function completeMessages({
         });
       },
     },
+    {
+      name: "getPatientDocumentList",
+      description: "Get a list of documents for a patient",
+      schema: z.object({
+        patient: z
+          .string()
+          .min(1)
+          .describe("The patient's main id, which should be active"),
+      }),
+      func: async ({ patient }: { patient: string }) => {
+        return redox.post("DocumentReference/_search", {
+          patient,
+        });
+      },
+    },
   ];
 
   const openai = new OpenAI({
