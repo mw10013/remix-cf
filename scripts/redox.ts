@@ -1,24 +1,20 @@
 import * as jose from "jose";
 import { z } from "zod";
-import { CloudflareEnv } from "~/types/cloudflareEnv";
+import { cloudflareEnvSchema } from "~/types/cloudflareEnv";
 
-const envSchema = z.object({
-  ENVIRONMENT: z.string().min(1),
-  OPENAI_API_KEY: z.string().min(1),
-  REDOX_API_CLIENT_ID: z.string().min(1),
-  REDOX_API_SCOPE: z.string().min(1),
-  REDOX_API_PUBLIC_KID: z.string().min(1),
-  REDOX_API_PRIVATE_JWK: z.string().min(1),
-  REDOX_ENDPOINT_VERIFICATION_TOKEN: z.string().min(1),
-});
-
-type Env = z.infer<typeof envSchema>;
-
-function assertEnv(obj: unknown): asserts obj is Env {
-  envSchema.parse(obj);
+function createEnv() {
+  const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    DB,
+    ...env
+  } = cloudflareEnvSchema.shape;
+  const envSchema = z.object({
+    ...env,
+  });
+  return envSchema.parse(process.env);
 }
 
-async function createRedox(env: Env) {
+async function createRedox(env: ReturnType<typeof createEnv>) {
   const endpoint =
     "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/";
   const aud = "https://api.redoxengine.com/v2/auth/token";
@@ -41,7 +37,7 @@ async function createRedox(env: Env) {
       signedAssertion,
       env.REDOX_API_SCOPE,
     );
-    console.log("jwtAccessToken:", jwtAccessToken);
+    // console.log("jwtAccessToken:", jwtAccessToken);
 
     const response = await fetch(endpoint + api, {
       method: "GET",
@@ -50,7 +46,7 @@ async function createRedox(env: Env) {
       },
     });
     await assertResponseOk(response);
-    return await response.text();
+    return await response.json();
   }
 
   async function post(api: string, body: unknown) {
@@ -58,7 +54,7 @@ async function createRedox(env: Env) {
       signedAssertion,
       env.REDOX_API_SCOPE,
     );
-    console.log("jwtAccessToken:", jwtAccessToken);
+    // console.log("jwtAccessToken:", jwtAccessToken);
 
     const response = await fetch(endpoint + api, {
       method: "POST",
@@ -69,7 +65,7 @@ async function createRedox(env: Env) {
       body: JSON.stringify(body),
     });
     await assertResponseOk(response);
-    return await response.text();
+    return await response.json();
   }
 
   async function assertResponseOk(res: Response) {
@@ -148,19 +144,19 @@ async function createRedox(env: Env) {
   return redox;
 }
 
-assertEnv(process.env);
-const redox = await createRedox(process.env);
+const env = createEnv();
+const redox = await createRedox(env);
 
-console.log(
-  "search: keva:",
+console.log("search: keva");
+console.dir(
   await redox.post("Patient/_search", {
     given: "Keva",
     family: "Green",
     birthdate: "1995-08-26",
   }),
+  { depth: null },
 );
-console.log(
-  "get: keva:",
-  await redox.get(`Patient/18a9b01f-6c53-4c1d-a552-1aedab2655cf`),
-);
-// console.log("get: keva:", await redox.get(`Patient/kyHGADnvX3xbkU4V9ayaqh`));
+
+const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
+console.log(`get ${patientId}`);
+console.dir(await redox.get(`Patient/${patientId}`), { depth: null });

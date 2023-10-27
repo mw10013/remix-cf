@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const cloudflareEnvSchema = z.object({
+export const cloudflareEnvSchema = z.object({
   ENVIRONMENT: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
   REDOX_API_CLIENT_ID: z.string().min(1),
