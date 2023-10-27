@@ -147,7 +147,17 @@ async function createRedox(env: ReturnType<typeof createEnv>) {
 const env = createEnv();
 const redox = await createRedox(env);
 
-console.log("search: keva");
+// https://docs.redoxengine.com/fhir-api-actions/patients/search-for-a-patient-with-identifier/
+console.log("search: urn:redox:redox-fhir-sandbox:MR|kyHGADnvX3xbkU4V9ayaqh");
+console.dir(
+  await redox.post("Patient/_search", {
+    identifier: "urn:redox:redox-fhir-sandbox:MR|kyHGADnvX3xbkU4V9ayaqh",
+  }),
+  { depth: null },
+);
+
+// https://docs.redoxengine.com/fhir-api-actions/patients/search-for-a-patient-by-demographics/
+console.log("search: Keva Green 1995-08-26");
 console.dir(
   await redox.post("Patient/_search", {
     given: "Keva",
@@ -157,6 +167,8 @@ console.dir(
   { depth: null },
 );
 
-const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
+// Inactive: const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
+const patientId = "81c2f5eb-f99f-40c4-b504-59483e6148d7";
 console.log(`get ${patientId}`);
 console.dir(await redox.get(`Patient/${patientId}`), { depth: null });
+
