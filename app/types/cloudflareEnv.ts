@@ -10,9 +10,6 @@ const cloudflareEnvSchema = z.object({
   REDOX_ENDPOINT_VERIFICATION_TOKEN: z.string().min(1),
   SERPAPI_API_KEY: z.string().min(1),
   DB: z.record(z.unknown()).transform((obj) => obj as unknown as D1Database),
-  // SUPABASE_URL: z.string().min(1),
-  // SUPABASE_ANON_KEY: z.string().min(1),
-  // SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   // SMN_KV: z
   //   .record(z.unknown())
   //   .transform((obj) => obj as unknown as KVNamespace),
