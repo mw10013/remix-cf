@@ -147,8 +147,11 @@ async function createRedox(env: ReturnType<typeof createEnv>) {
 const env = createEnv();
 const redox = await createRedox(env);
 
+// https://dashboard.redoxengine.com/#/organization/15903/development/actions/search-for-a-patient-with-identifier
 // https://docs.redoxengine.com/fhir-api-actions/patients/search-for-a-patient-with-identifier/
-console.log("search: urn:redox:redox-fhir-sandbox:MR|kyHGADnvX3xbkU4V9ayaqh");
+console.log(
+  "😀> Search: urn:redox:redox-fhir-sandbox:MR|kyHGADnvX3xbkU4V9ayaqh",
+);
 console.dir(
   await redox.post("Patient/_search", {
     identifier: "urn:redox:redox-fhir-sandbox:MR|kyHGADnvX3xbkU4V9ayaqh",
@@ -156,8 +159,9 @@ console.dir(
   { depth: null },
 );
 
+// https://dashboard.redoxengine.com/#/organization/15903/development/actions/search-patient-by-demographics
 // https://docs.redoxengine.com/fhir-api-actions/patients/search-for-a-patient-by-demographics/
-console.log("search: Keva Green 1995-08-26");
+console.log("😀> Search: Keva Green 1995-08-26");
 console.dir(
   await redox.post("Patient/_search", {
     given: "Keva",
@@ -167,8 +171,64 @@ console.dir(
   { depth: null },
 );
 
-// Inactive: const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
+// These may be interchangeable in many cases.
 const patientId = "81c2f5eb-f99f-40c4-b504-59483e6148d7";
+const patientIdentifier = "Patient/81c2f5eb-f99f-40c4-b504-59483e6148d7";
+
+// https://docs.redoxengine.com/api-reference/fhir-api-reference/fhir-resources/Patient/read/
+// Inactive: const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
 console.log(`get ${patientId}`);
 console.dir(await redox.get(`Patient/${patientId}`), { depth: null });
 
+// https://dashboard.redoxengine.com/#/organization/15903/development/actions/retrieve-a-patients-diagnoses
+// https://docs.redoxengine.com/fhir-api-actions/general-clinical/retrieve-a-patients-diagnoses/
+// https://docs.redoxengine.com/api-reference/fhir-api-reference/fhir-resources/Condition/_search/
+console.log(`😀> Retrieve diagnoses for ${patientIdentifier}`);
+console.dir(
+  await redox.post(`Condition/_search`, {
+    patient: patientIdentifier,
+    category: "problem-list-item",
+  }),
+  { depth: null },
+);
+
+console.log(`😀> Retrieve diagnoses for ${patientId}`);
+console.dir(
+  await redox.post(`Condition/_search`, {
+    patient: patientId,
+    category: "problem-list-item",
+  }),
+  { depth: null },
+);
+
+// https://dashboard.redoxengine.com/#/organization/15903/development/actions/retrieve-a-patients-transition-of-care-document
+console.log(`😀> Retrieve document list for ${patientId}`);
+console.dir(
+  await redox.post(`DocumentReference/_search`, {
+    patient: patientId,
+  }),
+  { depth: null },
+);
+
+// https://docs.redoxengine.com/api-reference/fhir-api-reference/fhir-resources/DocumentReference/_search/
+const documentId = "74d7f89e-d141-444b-a967-602525f34fc2";
+console.log(
+  `😀> Retrieve a patient's transition of care document (${documentId})`,
+);
+console.dir(
+  await redox.post(`DocumentReference/_search`, {
+    _id: documentId,
+  }),
+  { depth: null },
+);
+
+// https://dashboard.redoxengine.com/#/organization/15903/development/actions/retrieve-a-patients-appointment-schedule
+// https://docs.redoxengine.com/fhir-api-actions/visit-and-scheduling/retrieve-a-patients-appointment-schedule/
+// https://docs.redoxengine.com/api-reference/fhir-api-reference/fhir-resources/Appointment/_search/
+console.log(`😀> Retrieve appointment schedule for ${patientId}`);
+console.dir(
+  await redox.post(`Appointment/_search`, {
+    patient: patientId,
+  }),
+  { depth: null },
+);
