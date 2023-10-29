@@ -147,6 +147,11 @@ async function createRedox(env: ReturnType<typeof createEnv>) {
 const env = createEnv();
 const redox = await createRedox(env);
 
+// These may be interchangeable in many cases.
+// Inactive: const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
+const patientId = "81c2f5eb-f99f-40c4-b504-59483e6148d7";
+const patientIdentifier = "Patient/81c2f5eb-f99f-40c4-b504-59483e6148d7";
+
 // https://dashboard.redoxengine.com/#/organization/15903/development/actions/search-for-a-patient-with-identifier
 // https://docs.redoxengine.com/fhir-api-actions/patients/search-for-a-patient-with-identifier/
 console.log(
@@ -171,13 +176,8 @@ console.dir(
   { depth: null },
 );
 
-// These may be interchangeable in many cases.
-const patientId = "81c2f5eb-f99f-40c4-b504-59483e6148d7";
-const patientIdentifier = "Patient/81c2f5eb-f99f-40c4-b504-59483e6148d7";
-
 // https://docs.redoxengine.com/api-reference/fhir-api-reference/fhir-resources/Patient/read/
-// Inactive: const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
-console.log(`get ${patientId}`);
+console.log(`get patient: ${patientId}`);
 console.dir(await redox.get(`Patient/${patientId}`), { depth: null });
 
 // https://dashboard.redoxengine.com/#/organization/15903/development/actions/retrieve-a-patients-diagnoses
@@ -192,7 +192,7 @@ console.dir(
   { depth: null },
 );
 
-console.log(`😀> Retrieve diagnoses for ${patientId}`);
+// console.log(`😀> Retrieve diagnoses for ${patientId}`);
 console.dir(
   await redox.post(`Condition/_search`, {
     patient: patientId,
@@ -232,3 +232,9 @@ console.dir(
   }),
   { depth: null },
 );
+
+const appointmentId = "194414ff-46bf-4fd2-aa37-c58f3884f0de";
+console.log(`😀> Get appointment ${appointmentId}`);
+console.dir(await redox.get(`Appointment/${appointmentId}`), {
+  depth: null,
+});
