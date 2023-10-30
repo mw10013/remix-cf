@@ -195,3 +195,53 @@ console.dir(
   }),
   { depth: null },
 );
+
+// https://developer.redoxengine.com/data-models/ClinicalSummary.html#PatientQuery
+// console.log("😀> Clinical Summary: { ID: '0000000001', IDType: 'MR' }");
+// console.dir(
+//   await redox.post({
+//     Meta: {
+//       DataModel: "Clinical Summary",
+//       EventType: "PatientQuery",
+//       EventDateTime: "2023-10-27T20:13:23.435Z",
+//       Test: true,
+//       // Source: {
+//       //   ID: "7ce6f387-c33c-417d-8682-81e83628cbd9",
+//       //   Name: "Redox Dev Tools",
+//       // },
+//       Destinations: [
+//         {
+//           ID: "ef9e7448-7f65-4432-aa96-059647e9b357",
+//           Name: "Patient Query Endpoint",
+//         },
+//       ],
+//       Logs: [
+//         {
+//           ID: "d9f5d293-7110-461e-a875-3beb089e79f3",
+//           AttemptID: "925d1617-2fe0-468c-a14c-f8c04b572c54",
+//         },
+//       ],
+//       FacilityCode: null,
+//     },
+//     Patient: {
+//       Identifiers: [
+//         {
+//           ID: "0000000001",
+//           IDType: "MR",
+//         },
+//         {
+//           ID: "e167267c-16c9-4fe3-96ae-9cff5703e90a",
+//           IDType: "EHRID",
+//         },
+//         {
+//           ID: "a1d4ee8aba494ca",
+//           IDType: "NIST",
+//         },
+//       ],
+//     },
+//     Location: {
+//       Department: null,
+//     },
+//   }),
+//   { depth: null },
+// );
