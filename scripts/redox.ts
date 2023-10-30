@@ -176,6 +176,30 @@ console.dir(
   { depth: null },
 );
 
+console.log("😀> PatientSearch Query: Keva Green, 1995-08-26");
+console.dir(
+  await redox.post({
+    Meta: {
+      DataModel: "PatientSearch",
+      EventType: "Query",
+      Destinations: [
+        {
+          ID: "0f4bd1d1-451d-4351-8cfd-b767d1b488d6",
+          Name: "Patient Search Endpoint",
+        },
+      ],
+    },
+    Patient: {
+      Demographics: {
+        FirstName: "Keva",
+        LastName: "Green",
+        DOB: "1995-08-26",
+      },
+    },
+  }),
+  { depth: null },
+);
+
 console.log("😀> PatientSearch Query: { ID: '0000000001', IDType: 'MR' }");
 console.dir(
   await redox.post({
