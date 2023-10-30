@@ -150,6 +150,7 @@ const redox = await createRedox(env);
 // These may be interchangeable in many cases.
 // Inactive: const patientId = "69efd2ea-1256-4ae7-b4ec-5d0160427185";
 const patientId = "81c2f5eb-f99f-40c4-b504-59483e6148d7";
+// const patientId = "e167267c-16c9-4fe3-96ae-9cff5703e90a";
 const patientIdentifier = "Patient/81c2f5eb-f99f-40c4-b504-59483e6148d7";
 
 // https://dashboard.redoxengine.com/#/organization/15903/development/actions/search-for-a-patient-with-identifier
@@ -236,5 +237,33 @@ console.dir(
 const appointmentId = "194414ff-46bf-4fd2-aa37-c58f3884f0de";
 console.log(`😀> Get appointment ${appointmentId}`);
 console.dir(await redox.get(`Appointment/${appointmentId}`), {
+  depth: null,
+});
+
+console.log(
+  "😀> Search (Timothy Bixby): urn:redox:redox-fhir-sandbox:MR|0000000001",
+);
+console.dir(
+  await redox.post("Patient/_search", {
+    identifier: "urn:redox:redox-fhir-sandbox:MR|0000000001",
+  }),
+  { depth: null },
+);
+
+console.log(
+  "😀> Search  (Timothy Bixby): urn:redox:redox-fhir-sandbox:EHRID|e167267c-16c9-4fe3-96ae-9cff5703e90a",
+);
+console.dir(
+  await redox.post("Patient/_search", {
+    identifier:
+      "urn:redox:redox-fhir-sandbox:EHRID|e167267c-16c9-4fe3-96ae-9cff5703e90a",
+  }),
+  { depth: null },
+);
+
+console.log(
+  `get patient  (Timothy Bixby): a043e93e-3879-426b-a86d-c8efd423f3db`,
+);
+console.dir(await redox.get(`Patient/a043e93e-3879-426b-a86d-c8efd423f3db`), {
   depth: null,
 });
