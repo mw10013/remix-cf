@@ -63,6 +63,9 @@ async function createRedox(env: ReturnType<typeof createEnv>) {
       env.REDOX_API_SCOPE,
     );
 
+    console.log("post:");
+    console.dir(body, { depth: null });
+
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -183,41 +186,20 @@ type FunctionDescription<
 };
 
 const functionDescriptions: FunctionDescription[] = [
-  (() => {
-    const schema = z.object({
-      location: z
-        .string()
-        .describe("The city and state, e.g. San Francisco, CA"),
-      unit: z.enum(["celsius", "fahrenheit"]).optional(),
-    });
-
-    return {
-      name: "getCurrentWeather",
-      description: "Get the current weather in a given location",
-      schema,
-      func: async ({
-        location,
-        unit = "fahrenheit",
-      }: z.infer<typeof schema>) => {
-        const weatherInfo = {
-          location,
-          temperature: "72",
-
-          unit,
-          forecast: ["sunny", "windy"],
-        };
-        return Promise.resolve(JSON.stringify(weatherInfo));
-      },
-    };
-  })(),
   {
-    name: "getPatients",
-    description: "Get a list of patients",
+    name: "getPatientList",
+    description:
+      "Get a list of patients that includes identifiers and demographics",
     schema: z.object({}),
     func: async () =>
       Promise.resolve({
         patients: [
           {
+            Identifiers: [
+              { ID: "0000000001", IDType: "MR" },
+              { ID: "e167267c-16c9-4fe3-96ae-9cff5703e90a", IDType: "EHRID" },
+              { ID: "a1d4ee8aba494ca", IDType: "NIST" },
+            ],
             FirstName: "Timothy",
             LastName: "Bixby",
             DOB: "2008-01-06",
@@ -238,8 +220,9 @@ const functionDescriptions: FunctionDescription[] = [
     });
 
     return {
-      name: "patientSearch",
-      description: "Search for a patient",
+      name: "patientSearchWithDemographics",
+      description:
+        "Search for a patient with demographics (first name, last name, DOB)",
       schema,
       func: async (demographics: z.infer<typeof schema>) => {
         return redox.post({
@@ -257,6 +240,39 @@ const functionDescriptions: FunctionDescription[] = [
             Demographics: {
               ...demographics,
             },
+          },
+        });
+      },
+    };
+  })(),
+  (() => {
+    const schema = z.object({
+      Identifiers: z.array(
+        z.object({
+          ID: z.string().describe("The patient's identifier"),
+          IDType: z.string().describe("The patient's identifier type"),
+        }),
+      ),
+    });
+
+    return {
+      name: "patientSearchWithIdentifiers",
+      description: "Search for a patient with identifiers (id and id type)",
+      schema,
+      func: async (identifiers: z.infer<typeof schema>) => {
+        return redox.post({
+          Meta: {
+            DataModel: "PatientSearch",
+            EventType: "Query",
+            Destinations: [
+              {
+                ID: "0f4bd1d1-451d-4351-8cfd-b767d1b488d6",
+                Name: "Patient Search Endpoint",
+              },
+            ],
+          },
+          Patient: {
+            ...identifiers,
           },
         });
       },
@@ -336,6 +352,8 @@ async function completeMessages(messageStore: MessageStore) {
     return `Error parsing arguments for function ${functionName}: ${parseResult.error.message}`;
   }
   const functionOutput = await functionDescription.func(parseResult.data);
+  console.log("functionOutput:");
+  console.dir(functionOutput, { depth: null });
   messageStore.add({
     role: "function",
     name: functionName,
