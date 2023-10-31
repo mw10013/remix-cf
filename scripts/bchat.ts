@@ -143,27 +143,33 @@ type FunctionDescription<
 
 const redox = await createRedox();
 const functionDescriptions: FunctionDescription[] = [
-  {
-    name: "getCurrentWeather",
-    description: "Get the current weather in a given location",
-    schema: z.object({
+  (() => {
+    const schema = z.object({
       location: z
         .string()
         .describe("The city and state, e.g. San Francisco, CA"),
       unit: z.enum(["celsius", "fahrenheit"]).optional(),
-    }),
-    func: async ({ location, unit = "fahrenheit" }) => {
-      const weatherInfo = {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    });
+
+    return {
+      name: "getCurrentWeather",
+      description: "Get the current weather in a given location",
+      schema,
+      func: async ({
         location,
-        temperature: "72",
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        unit,
-        forecast: ["sunny", "windy"],
-      };
-      return Promise.resolve(JSON.stringify(weatherInfo));
-    },
-  },
+        unit = "fahrenheit",
+      }: z.infer<typeof schema>) => {
+        const weatherInfo = {
+          location,
+          temperature: "72",
+
+          unit,
+          forecast: ["sunny", "windy"],
+        };
+        return Promise.resolve(JSON.stringify(weatherInfo));
+      },
+    };
+  })(),
   {
     name: "getKevaGreenDetails",
     description: "Get Keva Green's details",
