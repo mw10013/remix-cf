@@ -2,48 +2,68 @@ import readline from "readline/promises";
 import * as jose from "jose";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/chat/index.mjs";
-import invariant from "tiny-invariant";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { cloudflareEnvSchema } from "~/types/cloudflareEnv";
 
 console.log("bchat");
 
-async function createRedox() {
-  const endpoint =
+function createEnv() {
+  const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    DB,
+    ...env
+  } = cloudflareEnvSchema.shape;
+  const envSchema = z.object({
+    ...env,
+  });
+  return envSchema.parse(process.env);
+}
+
+async function createRedox(env: ReturnType<typeof createEnv>) {
+  const endpoint = "https://api.redoxengine.com/endpoint";
+  const fhirEndpoint =
     "https://api.redoxengine.com/fhir/R4/redox-fhir-sandbox/Development/";
   const aud = "https://api.redoxengine.com/v2/auth/token";
 
-  invariant(
-    typeof process.env.REDOX_API_PRIVATE_JWK === "string" &&
-      typeof process.env.REDOX_API_CLIENT_ID === "string" &&
-      typeof process.env.REDOX_API_SCOPE === "string" &&
-      typeof process.env.REDOX_API_PUBLIC_KID === "string",
-    "Invalid env",
-  );
   const signedAssertion = await getSignedAssertion({
-    privateKeyJwk: JSON.parse(process.env.REDOX_API_PRIVATE_JWK) as jose.JWK,
-    clientId: process.env.REDOX_API_CLIENT_ID,
-    scope: process.env.REDOX_API_SCOPE,
-    kid: process.env.REDOX_API_PUBLIC_KID,
+    privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
+    clientId: env.REDOX_API_CLIENT_ID,
+    scope: env.REDOX_API_SCOPE,
+    kid: env.REDOX_API_PUBLIC_KID,
     aud,
   });
 
   const redox = {
+    get,
     post,
+    fhirPost,
   };
 
-  async function post(api: string, body: unknown) {
-    invariant(
-      typeof process.env.REDOX_API_SCOPE === "string",
-      "Invalid REDOX_API_SCOPE",
-    );
+  async function get(api: string) {
     const jwtAccessToken = await requestJwtAccessToken(
       signedAssertion,
-      process.env.REDOX_API_SCOPE,
+      env.REDOX_API_SCOPE,
     );
-    console.log("jwtAccessToken:", jwtAccessToken);
+    // console.log("jwtAccessToken:", jwtAccessToken);
 
     const response = await fetch(endpoint + api, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jwtAccessToken.access_token}`,
+      },
+    });
+    await assertResponseOk(response);
+    return await response.json();
+  }
+
+  async function post(body: unknown) {
+    const jwtAccessToken = await requestJwtAccessToken(
+      signedAssertion,
+      env.REDOX_API_SCOPE,
+    );
+
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${jwtAccessToken.access_token}`,
@@ -52,7 +72,25 @@ async function createRedox() {
       body: JSON.stringify(body),
     });
     await assertResponseOk(response);
-    return await response.text();
+    return await response.json();
+  }
+
+  async function fhirPost(api: string, body: unknown) {
+    const jwtAccessToken = await requestJwtAccessToken(
+      signedAssertion,
+      env.REDOX_API_SCOPE,
+    );
+    // console.log("jwtAccessToken:", jwtAccessToken);
+    const response = await fetch(fhirEndpoint + api, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwtAccessToken.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    await assertResponseOk(response);
+    return await response.json();
   }
 
   async function assertResponseOk(res: Response) {
@@ -131,6 +169,9 @@ async function createRedox() {
   return redox;
 }
 
+const env = createEnv();
+const redox = await createRedox(env);
+
 type FunctionDescription<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends z.ZodObject<any, any, any, any> = z.ZodObject<any, any, any, any>,
@@ -138,10 +179,9 @@ type FunctionDescription<
   name: string;
   description: string;
   schema: T;
-  func: (input: z.infer<T>) => Promise<string | object>;
+  func: (input: z.infer<T>) => Promise<unknown>;
 };
 
-const redox = await createRedox();
 const functionDescriptions: FunctionDescription[] = [
   (() => {
     const schema = z.object({
@@ -178,6 +218,11 @@ const functionDescriptions: FunctionDescription[] = [
       Promise.resolve({
         patients: [
           {
+            FirstName: "Timothy",
+            LastName: "Bixby",
+            DOB: "2008-01-06",
+          },
+          {
             given: "Keva",
             family: "Green",
             birthdate: "1995-08-26",
@@ -185,12 +230,44 @@ const functionDescriptions: FunctionDescription[] = [
         ],
       }),
   },
+  (() => {
+    const schema = z.object({
+      FirstName: z.string().describe("The patient's first name"),
+      LastName: z.string().describe("The patient's last name"),
+      DOB: z.string().describe("The patient's date of birth"),
+    });
+
+    return {
+      name: "patientSearch",
+      description: "Search for a patient",
+      schema,
+      func: async (demographics: z.infer<typeof schema>) => {
+        return redox.post({
+          Meta: {
+            DataModel: "PatientSearch",
+            EventType: "Query",
+            Destinations: [
+              {
+                ID: "0f4bd1d1-451d-4351-8cfd-b767d1b488d6",
+                Name: "Patient Search Endpoint",
+              },
+            ],
+          },
+          Patient: {
+            Demographics: {
+              ...demographics,
+            },
+          },
+        });
+      },
+    };
+  })(),
   {
     name: "getKevaGreenDetails",
     description: "Get Keva Green's details",
     schema: z.object({}),
     func: async () => {
-      return redox.post("Patient/_search", {
+      return redox.fhirPost("Patient/_search", {
         given: "Keva",
         family: "Green",
         birthdate: "1995-08-26",
