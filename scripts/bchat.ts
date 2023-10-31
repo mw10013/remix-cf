@@ -138,7 +138,7 @@ type FunctionDescription<
   name: string;
   description: string;
   schema: T;
-  func: (input: z.infer<T>) => Promise<string>;
+  func: (input: z.infer<T>) => Promise<string | object>;
 };
 
 const redox = await createRedox();
@@ -170,6 +170,21 @@ const functionDescriptions: FunctionDescription[] = [
       },
     };
   })(),
+  {
+    name: "getPatients",
+    description: "Get a list of patients",
+    schema: z.object({}),
+    func: async () =>
+      Promise.resolve({
+        patients: [
+          {
+            given: "Keva",
+            family: "Green",
+            birthdate: "1995-08-26",
+          },
+        ],
+      }),
+  },
   {
     name: "getKevaGreenDetails",
     description: "Get Keva Green's details",
@@ -247,7 +262,10 @@ async function completeMessages(messageStore: MessageStore) {
   messageStore.add({
     role: "function",
     name: functionName,
-    content: functionOutput,
+    content:
+      typeof functionOutput === "string"
+        ? functionOutput
+        : JSON.stringify(functionOutput, null, 2),
   });
   const functionCompletion = await openai.chat.completions.create({
     model: "gpt-4-0613",
