@@ -204,10 +204,15 @@ const functionDescriptions: FunctionDescription[] = [
             LastName: "Bixby",
             DOB: "2008-01-06",
           },
-          {
-            given: "Keva",
-            family: "Green",
-            birthdate: "1995-08-26",
+          { // Seems to be missing in Data Model API
+            Identifiers: [
+              // { ID: "483749", IDType: "MR" },
+              { ID: "kyHGADnvX3xbkU4V9ayaqh", IDType: "MR" },
+              { ID: "81c2f5eb-f99f-40c4-b504-59483e6148d", IDType: "EHRID" },
+            ],
+            FirstName: "Keva",
+            LastName: "Green",
+            DOB: "1995-08-26",
           },
         ],
       }),
@@ -278,18 +283,6 @@ const functionDescriptions: FunctionDescription[] = [
       },
     };
   })(),
-  {
-    name: "getKevaGreenDetails",
-    description: "Get Keva Green's details",
-    schema: z.object({}),
-    func: async () => {
-      return redox.fhirPost("Patient/_search", {
-        given: "Keva",
-        family: "Green",
-        birthdate: "1995-08-26",
-      });
-    },
-  },
 ];
 
 const openai = new OpenAI({
