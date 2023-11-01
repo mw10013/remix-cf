@@ -23,7 +23,7 @@ async function createRedox(env: ReturnType<typeof createEnv>) {
     privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
     clientId: env.REDOX_API_CLIENT_ID,
     scope: env.REDOX_API_SCOPE,
-    kid: env.REDOX_API_PUBLIC_KID,
+    kid: env.REDOX_API_KID,
     aud,
   });
 

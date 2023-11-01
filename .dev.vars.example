@@ -9,7 +9,7 @@ REDOX_API_CLIENT_ID=
 # fhir:development | fhir:staging | fhir:production
 REDOX_API_SCOPE=fhir:development
 # kid from redox api public key json (JWK).
-REDOX_API_PUBLIC_KID=
+REDOX_API_KID=
 # redox api private key as JWK. Can use https://jqplay.org/ with -s to convert to 1 line of json.
 REDOX_API_PRIVATE_JWK=
 REDOX_ENDPOINT_VERIFICATION_TOKEN=

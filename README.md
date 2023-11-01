@@ -11,7 +11,7 @@
   - Developer | API Keys | Create API Key
     - Name: mw
     - Key pairs | Generate your keys | Generate New API Keys
-    - Download json public and private keys (JWK)
+    - Download json public and private keys (JWK), postman env
   - Developer | Endpoints | Create Endpoint
     - Name: local
     - Redox API Endpoint: [cloudflare tunnel to localhost from tunnel script in package.json]

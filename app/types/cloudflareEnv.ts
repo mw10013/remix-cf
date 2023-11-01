@@ -5,7 +5,7 @@ export const cloudflareEnvSchema = z.object({
   OPENAI_API_KEY: z.string().min(1),
   REDOX_API_CLIENT_ID: z.string().min(1),
   REDOX_API_SCOPE: z.string().min(1),
-  REDOX_API_PUBLIC_KID: z.string().min(1),
+  REDOX_API_KID: z.string().min(1),
   REDOX_API_PRIVATE_JWK: z.string().min(1),
   REDOX_ENDPOINT_VERIFICATION_TOKEN: z.string().min(1),
   SERPAPI_API_KEY: z.string().min(1),

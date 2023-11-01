@@ -89,14 +89,14 @@ invariant(
   typeof process.env.REDOX_API_PRIVATE_JWK === "string" &&
     typeof process.env.REDOX_API_CLIENT_ID === "string" &&
     typeof process.env.REDOX_API_SCOPE === "string" &&
-    typeof process.env.REDOX_API_PUBLIC_KID === "string",
+    typeof process.env.REDOX_API_KID === "string",
   "Invalid env",
 );
 const signedAssertion = await getSignedAssertion({
   privateKeyJwk: JSON.parse(process.env.REDOX_API_PRIVATE_JWK) as jose.JWK,
   clientId: process.env.REDOX_API_CLIENT_ID,
   scope: process.env.REDOX_API_SCOPE,
-  kid: process.env.REDOX_API_PUBLIC_KID,
+  kid: process.env.REDOX_API_KID,
   aud: AUD,
 });
 

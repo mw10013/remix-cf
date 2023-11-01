@@ -30,7 +30,7 @@ async function createRedox(env: ReturnType<typeof createEnv>) {
     privateKeyJwk: JSON.parse(env.REDOX_API_PRIVATE_JWK) as jose.JWK,
     clientId: env.REDOX_API_CLIENT_ID,
     scope: env.REDOX_API_SCOPE,
-    kid: env.REDOX_API_PUBLIC_KID,
+    kid: env.REDOX_API_KID,
     aud,
   });
 
@@ -204,7 +204,8 @@ const functionDescriptions: FunctionDescription[] = [
             LastName: "Bixby",
             DOB: "2008-01-06",
           },
-          { // Seems to be missing in Data Model API
+          {
+            // Seems to be missing in Data Model API
             Identifiers: [
               // { ID: "483749", IDType: "MR" },
               { ID: "kyHGADnvX3xbkU4V9ayaqh", IDType: "MR" },
