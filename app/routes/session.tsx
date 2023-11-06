@@ -1,9 +1,7 @@
 import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import {
-  ActionFunctionArgs,
   createCookie,
   createWorkersKVSessionStorage,
-  isSession,
   json,
   LoaderFunctionArgs,
 } from "@remix-run/cloudflare";
@@ -39,8 +37,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json(
     {
       session,
-      hasCount: session.has("count"),
-      isSession: isSession(session),
+      id: session.id,
       kvListResult,
     },
     {
@@ -51,11 +48,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   );
 }
 
-export async function action({ request, context }: ActionFunctionArgs) {
-  assertCloudflareEnv(context.env);
-  const { getSession, commitSession } = warmUpSession(context.env.KV);
-  const session = await getSession(request.headers.get("Cookie"));
-}
+// export async function action({ request, context }: ActionFunctionArgs) {
+//   assertCloudflareEnv(context.env);
+//   const { getSession, commitSession } = warmUpSession(context.env.KV);
+//   const session = await getSession(request.headers.get("Cookie"));
+// }
 
 export default function Route() {
   const data = useLoaderData<typeof loader>();
