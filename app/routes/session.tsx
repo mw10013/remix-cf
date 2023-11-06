@@ -1,43 +1,24 @@
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
-import {
-  createCookie,
-  createWorkersKVSessionStorage,
-  json,
-  LoaderFunctionArgs,
-} from "@remix-run/cloudflare";
-import { Form, useLoaderData } from "@remix-run/react";
-import { assertCloudflareEnv } from "~/types/cloudflareEnv";
-
-function warmUpSession(kv: KVNamespace) {
-  type SessionData = { count: number };
-  type FlashData = { flashMessage: string };
-
-  const sessionCookie = createCookie("__session", {
-    secrets: ["r3m1xr0ck5"],
-    sameSite: true,
-    maxAge: 60,
-  });
-
-  const { getSession, commitSession, destroySession } =
-    createWorkersKVSessionStorage<SessionData, FlashData>({
-      kv,
-      cookie: sessionCookie,
-    });
-
-  return { getSession, commitSession, destroySession };
-}
+import { Button, Card, CardBody, CardHeader, Link } from "@nextui-org/react";
+import { json, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { Form, Link as RemixLink, useLoaderData } from "@remix-run/react";
+import { hookCloudflareEnv, hookSession } from "~/lib/hooks";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  assertCloudflareEnv(context.env);
-  const { getSession, commitSession } = warmUpSession(context.env.KV);
+  const { KV, HUBSPOT_REDIRECT_URI } = hookCloudflareEnv(context.env);
+  const { getSession, commitSession } = hookSession(KV);
   const session = await getSession(request.headers.get("Cookie"));
-  session.set("count", (session.get("count") ?? 0) + 1);
-  const kvListResult = await context.env.KV.list();
+  const kvListResult = await KV.list();
+
+  const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=0810e766-079b-4a8b-a916-369a4eaa4b66&scope=crm.objects.contacts.read&redirect_uri=${encodeURI(
+    HUBSPOT_REDIRECT_URI,
+  )}`;
 
   return json(
     {
+      authUrl,
       session,
       id: session.id,
+      hubspotAccessToken: session.get("hubspotAccessToken"),
       kvListResult,
     },
     {
@@ -61,6 +42,16 @@ export default function Route() {
     <Card className="mx-auto max-w-sm">
       <CardHeader>Session</CardHeader>
       <CardBody className="flex flex-col gap-4">
+        {!data.hubspotAccessToken && (
+          <Link
+            as={RemixLink}
+            to={data.authUrl}
+            color="foreground"
+            underline="hover"
+          >
+            Access Hubspot
+          </Link>
+        )}
         <Form method="POST">
           <Button type="submit" color="primary">
             Submit
