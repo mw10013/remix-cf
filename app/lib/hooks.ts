@@ -8,12 +8,15 @@ export function hookSession(kv: KVNamespace) {
   type SessionData = {
     hubspotAccessToken: string;
     hubspotRefreshToken: string;
+    count: number;
   };
   type FlashData = { flashMessage: string };
 
   const sessionCookie = createCookie("__session", {
     secrets: ["r3m1xr0ck5"],
-    sameSite: true,
+    // https://github.com/vercel/next.js/discussions/17612
+    // sameSite: true,
+    sameSite: "lax",
     maxAge: 60,
   });
 

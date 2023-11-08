@@ -8,7 +8,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     context.env,
   );
   const { getSession, commitSession } = hookSession(KV);
+  console.log("session: cookie:", request.headers.get("Cookie"));
   const session = await getSession(request.headers.get("Cookie"));
+  session.set("count", (session.get("count") ?? 0) + 1);
   const kvListResult = await KV.list();
 
   const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${HUBSPOT_CLIENT_ID}&redirect_uri=${encodeURI(
