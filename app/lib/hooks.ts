@@ -2,9 +2,9 @@ import {
   createCookie,
   createWorkersKVSessionStorage,
 } from "@remix-run/cloudflare";
-import { assertCloudflareEnv } from "~/types/cloudflareEnv";
+import { assertCloudflareEnv, CloudflareEnv } from "~/types/cloudflareEnv";
 
-export function hookSession(kv: KVNamespace) {
+export function hookSession(env: CloudflareEnv) {
   type SessionData = {
     hubspotAccessToken: string;
     hubspotRefreshToken: string;
@@ -12,16 +12,15 @@ export function hookSession(kv: KVNamespace) {
   type FlashData = { flashMessage: string };
 
   const sessionCookie = createCookie("__session", {
-    secrets: ["r3m1xr0ck5"],
+    secrets: [env.COOKIE_SECRET],
     // https://github.com/vercel/next.js/discussions/17612
-    // sameSite: true,
     sameSite: "lax",
     maxAge: 60,
   });
 
   const { getSession, commitSession, destroySession } =
     createWorkersKVSessionStorage<SessionData, FlashData>({
-      kv,
+      kv: env.KV,
       cookie: sessionCookie,
     });
 

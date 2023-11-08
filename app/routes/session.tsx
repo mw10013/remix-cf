@@ -5,12 +5,10 @@ import { hookCloudflareEnv, hookSession } from "~/lib/hooks";
 import { assertResponseOk } from "~/lib/utils";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { KV, HUBSPOT_CLIENT_ID, HUBSPOT_REDIRECT_URI } = hookCloudflareEnv(
-    context.env,
-  );
-  const { getSession, commitSession } = hookSession(KV);
+  const env = hookCloudflareEnv(context.env);
+  const { getSession, commitSession } = hookSession(env);
   const session = await getSession(request.headers.get("Cookie"));
-  const kvListResult = await KV.list();
+  const kvListResult = await env.KV.list();
 
   const contact = await (async (accessToken) => {
     if (!accessToken) {
@@ -26,8 +24,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return await response.json();
   })(session.get("hubspotAccessToken"));
 
-  const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${HUBSPOT_CLIENT_ID}&redirect_uri=${encodeURI(
-    HUBSPOT_REDIRECT_URI,
+  const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${
+    env.HUBSPOT_CLIENT_ID
+  }&redirect_uri=${encodeURI(
+    env.HUBSPOT_REDIRECT_URI,
   )}&scope=crm.objects.contacts.read`;
 
   return json(

@@ -3,7 +3,6 @@ import invariant from "tiny-invariant";
 import { hookCloudflareEnv, hookSession } from "~/lib/hooks";
 import { assertResponseOk } from "~/lib/utils";
 
-
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
@@ -33,7 +32,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }>();
   console.log({ access_token, refresh_token, expires_in });
 
-  const { getSession, commitSession } = hookSession(env.KV);
+  const { getSession, commitSession } = hookSession(env);
   const session = await getSession(request.headers.get("Cookie"));
   session.set("hubspotAccessToken", access_token);
   session.set("hubspotRefreshToken", refresh_token);

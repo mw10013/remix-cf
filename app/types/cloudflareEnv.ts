@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const cloudflareEnvSchema = z.object({
   ENVIRONMENT: z.string().min(1),
+  COOKIE_SECRET: z.string().min(1),
   HUBSPOT_CLIENT_ID: z.string().min(1),
   HUBSPOT_CLIENT_SECRET: z.string().min(1),
   HUBSPOT_REDIRECT_URI: z.string().min(1),
