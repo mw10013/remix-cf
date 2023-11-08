@@ -8,7 +8,6 @@ export function hookSession(kv: KVNamespace) {
   type SessionData = {
     hubspotAccessToken: string;
     hubspotRefreshToken: string;
-    count: number;
   };
   type FlashData = { flashMessage: string };
 

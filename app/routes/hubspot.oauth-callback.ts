@@ -1,19 +1,10 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/cloudflare";
 import invariant from "tiny-invariant";
 import { hookCloudflareEnv, hookSession } from "~/lib/hooks";
+import { assertResponseOk } from "~/lib/utils";
 
-async function assertResponseOk(res: Response) {
-  if (!res.ok) {
-    const error = new Error(
-      `${res.status} ${res.statusText} ${await res.text()}`,
-    );
-    throw error;
-  }
-}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  console.log("oauth-callback: cookie:", request.headers.get("Cookie"));
-
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   invariant(code, "Invalid code");
@@ -35,10 +26,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     body: searchParams,
   });
   await assertResponseOk(response);
-  const { access_token, refresh_token } = await response.json<{
+  const { access_token, refresh_token, expires_in } = await response.json<{
     access_token: string;
     refresh_token: string;
+    expires_in: number;
   }>();
+  console.log({ access_token, refresh_token, expires_in });
 
   const { getSession, commitSession } = hookSession(env.KV);
   const session = await getSession(request.headers.get("Cookie"));
