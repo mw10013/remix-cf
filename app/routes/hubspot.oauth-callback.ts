@@ -36,6 +36,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   session.set("hubspotAccessToken", access_token);
   session.set("hubspotRefreshToken", refresh_token);
+  session.set(
+    "hubspotExpiresAt",
+    Date.now() + Math.round(expires_in * 0.75) * 1000,
+  );
 
   return redirect("/session", {
     headers: {

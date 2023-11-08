@@ -1,13 +1,14 @@
 import { Card, CardBody, CardHeader, Link } from "@nextui-org/react";
 import { json, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Link as RemixLink, useLoaderData } from "@remix-run/react";
-import { hookCloudflareEnv, hookSession } from "~/lib/hooks";
+import { hookCloudflareEnv, hookHubspot, hookSession } from "~/lib/hooks";
 import { assertResponseOk } from "~/lib/utils";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = hookCloudflareEnv(context.env);
   const { getSession, commitSession } = hookSession(env);
   const session = await getSession(request.headers.get("Cookie"));
+  const { authUrl } = hookHubspot({ env, session });
   const kvListResult = await env.KV.list();
 
   const contact = await (async (accessToken) => {
@@ -23,12 +24,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     await assertResponseOk(response);
     return await response.json();
   })(session.get("hubspotAccessToken"));
-
-  const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${
-    env.HUBSPOT_CLIENT_ID
-  }&redirect_uri=${encodeURI(
-    env.HUBSPOT_REDIRECT_URI,
-  )}&scope=crm.objects.contacts.read`;
 
   return json(
     {
