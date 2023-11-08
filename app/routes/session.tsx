@@ -4,14 +4,16 @@ import { Form, Link as RemixLink, useLoaderData } from "@remix-run/react";
 import { hookCloudflareEnv, hookSession } from "~/lib/hooks";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { KV, HUBSPOT_REDIRECT_URI } = hookCloudflareEnv(context.env);
+  const { KV, HUBSPOT_CLIENT_ID, HUBSPOT_REDIRECT_URI } = hookCloudflareEnv(
+    context.env,
+  );
   const { getSession, commitSession } = hookSession(KV);
   const session = await getSession(request.headers.get("Cookie"));
   const kvListResult = await KV.list();
 
-  const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=0810e766-079b-4a8b-a916-369a4eaa4b66&scope=crm.objects.contacts.read&redirect_uri=${encodeURI(
+  const authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${HUBSPOT_CLIENT_ID}&redirect_uri=${encodeURI(
     HUBSPOT_REDIRECT_URI,
-  )}`;
+  )}&scope=crm.objects.contacts.read`;
 
   return json(
     {
@@ -49,7 +51,7 @@ export default function Route() {
             color="foreground"
             underline="hover"
           >
-            Access Hubspot
+            Authorize
           </Link>
         )}
         <Form method="POST">
