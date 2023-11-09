@@ -46,14 +46,16 @@ export function hookHubspot({
     env.HUBSPOT_REDIRECT_URI,
   )}&scope=crm.objects.contacts.read`;
 
+  const getAccessToken = () => {
+    const accessToken = session.get("hubspotAccessToken");
+    if (!accessToken) {
+      return null;
+    }
+    return accessToken;
+  };
+
   return {
     authUrl,
-    getAccessToken() {
-      const accessToken = session.get("hubspotAccessToken");
-      if (!accessToken) {
-        return null;
-      }
-      return accessToken;
-    },
+    getAccessToken,
   };
 }

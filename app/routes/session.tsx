@@ -8,7 +8,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = hookCloudflareEnv(context.env);
   const { getSession, commitSession } = hookSession(env);
   const session = await getSession(request.headers.get("Cookie"));
-  const { authUrl } = hookHubspot({ env, session });
+  const { authUrl, getAccessToken } = hookHubspot({ env, session });
   const kvListResult = await env.KV.list();
 
   const contact = await (async (accessToken) => {
@@ -23,7 +23,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     );
     await assertResponseOk(response);
     return await response.json();
-  })(session.get("hubspotAccessToken"));
+  })(getAccessToken());
 
   return json(
     {
