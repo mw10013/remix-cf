@@ -6,6 +6,7 @@ export const cloudflareEnvSchema = z.object({
   HUBSPOT_CLIENT_ID: z.string().min(1),
   HUBSPOT_CLIENT_SECRET: z.string().min(1),
   HUBSPOT_REDIRECT_URI: z.string().min(1),
+  NANGO_SECRET_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
   REDOX_API_CLIENT_ID: z.string().min(1),
   REDOX_API_SCOPE: z.string().min(1),
